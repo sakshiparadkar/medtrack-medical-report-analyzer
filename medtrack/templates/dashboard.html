@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — MedTrack{% endblock %}
+
+{% block content %}
+<div class="mt-page-head">
+  <div>
+    <h1>Hello {{ current_user.name.split(' ')[0] }} 👋</h1>
+    <p>{% if last_upload %}Last report on {{ last_upload.strftime('%d %b %Y') }}{% else %}No reports yet{% endif %}</p>
+  </div>
+  <div style="display:flex; gap:10px;">
+    {% if has_demo %}
+    <form method="POST" action="{{ url_for('remove_demo_data') }}" onsubmit="return confirm('Remove the sample reports from your account?');">
+      <button type="submit" class="mt-btn mt-btn-ghost">Remove sample data</button>
+    </form>
+    {% else %}
+    <form method="POST" action="{{ url_for('load_demo_data') }}" onsubmit="return confirm('This adds 5 sample reports to your account so you can see every feature. You can remove them any time.');">
+      <button type="submit" class="mt-btn mt-btn-outline">Load sample data</button>
+    </form>
+    {% endif %}
+    
+  </div>
+</div>
+
+{% if has_reports %}
+
+{% if anomalies %}
+<div class="mt-alert-banner danger">
+  <div class="mt-icon-circle">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </div>
+  <div>
+    <h4>{{ anomalies|length }} value{{ 's' if anomalies|length != 1 }} outside your usual pattern</h4>
+    <ul>
+      {% for a in anomalies %}
+      <li>
+        <b>{{ a.test_name }}</b> is {{ a.value }}, {{ a.direction }} than your usual ~{{ a.expected }}
+        (z-score {{ '%+.1f'|format(a.z) }}).
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+{% if trending_tests %}
+<div class="mt-alert-banner">
+  <div class="mt-icon-circle">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.9L21 11l-6.6 2.1L12 20l-2.4-6.9L3 11l6.6-2.1L12 2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  </div>
+  <div>
+    <h4>{{ trending_tests|length }} test{{ 's' if trending_tests|length != 1 }} showing a consistent trend</h4>
+    <ul>
+      {% for t in trending_tests %}
+      <li>
+        <b>{{ t.test_name }}</b> has been {{ t.direction }} over your last {{ t.points_considered }} reports
+        ({{ t.first_value }} → {{ t.latest_value }}{% if t.pct is not none %}, {{ '%+.1f'|format(t.pct) }}%{% endif %}).
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+
+<div class="mt-stats-row">
+  <div class="mt-stat-card primary">
+    <div class="mt-stat-label">Total reports</div>
+    <div class="mt-stat-value">{{ total_reports }}</div>
+  </div>
+  <div class="mt-stat-card abnormal">
+    <div class="mt-stat-label">Abnormal values</div>
+    <div class="mt-stat-value">{{ total_abnormal }}</div>
+  </div>
+  <div class="mt-stat-card review">
+    <div class="mt-stat-label">Needs review</div>
+    <div class="mt-stat-value">{{ total_review }}</div>
+  </div>
+  <div class="mt-stat-card">
+    <div class="mt-stat-label">Last upload</div>
+    <div class="mt-stat-value" style="font-size:1.3rem;">{{ last_upload.strftime('%d %b %Y') if last_upload else '—' }}</div>
+  </div>
+</div>
+
+<!-- ===================== HEALTH SCORE ===================== -->
+{% if health %}
+<div class="mt-card" style="display:flex; align-items:center; gap:28px; flex-wrap:wrap;">
+  <div style="position:relative; width:130px; height:130px; flex-shrink:0;">
+    <svg width="130" height="130" viewBox="0 0 36 36" style="transform:rotate(-90deg);">
+      <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#E5ECEA" stroke-width="3.2"/>
+      <circle cx="18" cy="18" r="15.9155" fill="none" stroke="{{ health.color }}" stroke-width="3.2" stroke-linecap="round" pathLength="100" stroke-dasharray="{{ health.pct }} 100"/>
+    </svg>
+    <div style="position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <span style="font-size:2rem; font-weight:800; line-height:1;">{{ health.pct }}</span>
+      <span style="font-size:0.75rem; color:var(--ink-soft);">out of 100</span>
+    </div>
+  </div>
+
+  <div style="flex:1; min-width:220px;">
+    <h2 style="margin:0 0 4px;">Health score: {{ health.label }}</h2>
+    <p style="margin:0 0 8px; color:var(--ink-soft);">
+      {{ health.ok }} of {{ health.total }} tests are in the normal range in your latest report.
+    </p>
+    {% if health.delta is not none %}
+      {% if health.delta > 0 %}
+      <p style="margin:0 0 8px; font-weight:600; color:#0F766E;">▲ Up {{ health.delta }} points since your previous report</p>
+      {% elif health.delta < 0 %}
+      <p style="margin:0 0 8px; font-weight:600; color:#DC2626;">▼ Down {{ -health.delta }} points since your previous report</p>
+      {% else %}
+      <p style="margin:0 0 8px; font-weight:600; color:var(--ink-soft);">No change since your previous report</p>
+      {% endif %}
+    {% endif %}
+    <p style="margin:0; font-size:0.8rem; color:var(--ink-soft);">
+      A simple summary of how many tests are inside their normal range. It is not a medical diagnosis.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<!-- ===================== HEALTH GOALS ===================== -->
+<div class="mt-card">
+  <div class="mt-card-head">
+    <div>
+      <h2>My health goals</h2>
+      <p class="mt-card-sub">Set a target for a test and track how close you are.</p>
+    </div>
+  </div>
+
+  {% if goal_cards %}
+  <div style="display:flex; flex-direction:column; gap:18px; margin-bottom:22px;">
+    {% for g in goal_cards %}
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;">
+        <p style="margin:0; font-weight:600;">
+          {{ g.test_name }}
+          <span style="font-weight:400; color:var(--ink-soft);">· goal: {{ g.direction }} {{ g.target }} {{ g.unit }}</span>
+        </p>
+        <form method="POST" action="{{ url_for('delete_goal', goal_id=g.id) }}" onsubmit="return confirm('Remove this goal?');">
+          <button type="submit" style="background:none; border:none; color:#E4572E; font-size:0.82rem; font-weight:600; cursor:pointer;">Remove</button>
+        </form>
+      </div>
+
+      <div style="background:#E5ECEA; border-radius:999px; height:12px; margin:8px 0 6px; overflow:hidden;">
+        {% set bar_color = '#0F766E' if g.met else '#EAB308' if g.pct < 50 else '#1F6F63' %}
+        <div {{ ('style="width:' ~ g.pct ~ '%; height:100%; border-radius:999px; background:' ~ bar_color ~ ';"')|safe }}></div>
+      </div>
+
+      <p style="margin:0; font-size:0.85rem; color:var(--ink-soft);">
+        {% if g.met %}
+          🎉 Goal reached! Your latest value is {{ g.current }} {{ g.unit }}.
+        {% else %}
+          Started at {{ g.start }}, now {{ g.current }} {{ g.unit }}. {{ g.left }} {{ g.unit }} to go ({{ g.pct }}% there).
+        {% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--ink-soft); font-size:0.92rem; margin:0 0 18px;">No goals yet. Add your first one below.</p>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('add_goal') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+    <div style="flex:2; min-width:160px;">
+      <label class="mt-form-label" for="goal_test">Test</label>
+      <select class="mt-input" id="goal_test" name="test_name" required>
+        {% for name in goal_test_names %}
+        <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1; min-width:110px;">
+      <label class="mt-form-label" for="goal_dir">I want it</label>
+      <select class="mt-input" id="goal_dir" name="direction">
+        <option value="below">Below</option>
+        <option value="above">Above</option>
+      </select>
+    </div>
+    <div style="flex:1; min-width:110px;">
+      <label class="mt-form-label" for="goal_target">Target</label>
+      <input class="mt-input" type="number" step="any" id="goal_target" name="target_value" placeholder="e.g. 100" required>
+    </div>
+    <button type="submit" class="mt-btn mt-btn-primary" style="padding:10px 22px;">Set goal</button>
+  </form>
+</div>
+<!-- ===================== END HEALTH GOALS ===================== -->
+
+{% if normalized_chart %}
+<div class="mt-card">
+  <div class="mt-card-head">
+    <div>
+      <h2>Latest report at a glance</h2>
+      <p class="mt-card-sub">Each dot is one test, placed between its lower and upper normal limit.</p>
+    </div>
+    <div class="mt-sev-strip">
+      {% for key, label in severity_labels.items() %}
+      <span class="mt-sev-chip {{ key }}"><b>{{ severity_counts[key] }}</b> {{ label }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {{ normalized_chart|safe }}
+</div>
+{% endif %}
+
+{% if trend_charts %}
+<h2 class="mt-section-title">Trends across reports</h2>
+<p class="mt-chart-legend">
+  <span><i class="mt-legend-ring"></i> Outside your usual pattern</span>
+  <span><i class="mt-legend-dots"></i> Expected next value</span>
+</p>
+<div class="mt-chart-grid">
+  {% for chart in trend_charts %}
+  <div class="mt-chart-card">{{ chart|safe }}</div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="mt-empty" style="margin-top:20px;">
+  <h3>Not enough data for trends yet</h3>
+  <p>Upload at least two reports containing the same test to see a trend line here.</p>
+</div>
+{% endif %}
+
+<h2 class="mt-section-title">Recent reports</h2>
+<div class="mt-card" style="padding:0;">
+  <table class="mt-table">
+    <thead>
+      <tr><th>Date</th><th>File</th><th>Values extracted</th><th>Abnormal</th><th colspan="2">Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for r in recent_reports %}
+      <tr>
+        <td>{{ r.report_date.strftime('%d %b %Y') }}</td>
+        <td>{{ r.original_name }}</td>
+        <td>{{ r.results|length }}</td>
+        <td>{% if r.abnormal_count %}<span class="mt-badge abnormal">{{ r.abnormal_count }}</span>{% else %}—{% endif %}</td>
+        <td><a href="{{ url_for('report_detail', report_id=r.id) }}" class="mt-btn mt-btn-ghost" style="padding:5px 14px;">View</a></td>
+        <td>
+          <form method="POST" action="{{ url_for('delete_report', report_id=r.id) }}" onsubmit="return confirm('Delete this report permanently? This cannot be undone.');">
+            <button type="submit" class="mt-btn mt-btn-danger" style="padding:5px 14px;">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% else %}
+<div class="mt-empty">
+  <div class="mt-icon-circle" style="margin:0 auto 16px;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.6"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </div>
+  <h3>No reports uploaded yet</h3>
+  <p>Upload your first lab report to start building your health trend dashboard.</p>
+  <a href="{{ url_for('upload') }}" class="mt-btn mt-btn-primary" style="margin-top:14px;">Upload your first report</a>
+</div>
+{% endif %}
+{% endblock %}

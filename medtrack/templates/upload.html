@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Upload Report — MedTrack{% endblock %}
+
+{% block content %}
+<div class="mt-page-head" style="justify-content:center; text-align:center;">
+  <div>
+    <h1>Upload a lab report</h1>
+    <p>PDF only, for now — digital text-based reports extract most accurately.</p>
+  </div>
+</div>
+
+<!-- First-time guide -->
+{% if not success %}
+<div class="mt-card" id="first-guide" style="display:none; max-width:560px; margin:0 auto 20px; border-left:4px solid var(--brand, #1F6F63);">
+  <h4 style="margin:0 0 4px;">Welcome to MedTrack 👋</h4>
+  <p style="margin:0 0 16px; color:var(--ink-soft); font-size:0.9rem;">Get your health dashboard ready in 3 simple steps.</p>
+
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <span style="flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--brand, #1F6F63); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem;">1</span>
+      <div>
+        <p style="margin:0; font-weight:600;">Upload your report</p>
+        <p style="margin:2px 0 0; color:var(--ink-soft); font-size:0.88rem;">Pick the report date and drop your lab report PDF below.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <span style="flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--brand, #1F6F63); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem;">2</span>
+      <div>
+        <p style="margin:0; font-weight:600;">Check your values</p>
+        <p style="margin:2px 0 0; color:var(--ink-soft); font-size:0.88rem;">MedTrack reads the test values for you. Use "Check &amp; edit values" to fix anything that looks wrong.</p>
+      </div>
+    </div>
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+      <span style="flex-shrink:0; width:28px; height:28px; border-radius:50%; background:var(--brand, #1F6F63); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem;">3</span>
+      <div>
+        <p style="margin:0; font-weight:600;">Explore your dashboard</p>
+        <p style="margin:2px 0 0; color:var(--ink-soft); font-size:0.88rem;">See severity levels (yellow, orange, red) and trends at a glance. The more reports you add, the better your trends get.</p>
+      </div>
+    </div>
+  </div>
+
+  <button type="button" id="guide-dismiss" class="mt-btn mt-btn-primary" style="margin-top:18px; padding:8px 20px;">Got it</button>
+</div>
+{% endif %}
+
+{% if success %}
+<div class="mt-card" style="max-width:560px; margin:0 auto 20px; border-left:4px solid #22a06b; background:#f0fbf6;">
+  <div style="display:flex; gap:14px; align-items:flex-start;">
+    <div class="mt-icon-circle" style="background:#22a06b; color:#fff; flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div style="flex:1;">
+      <p style="margin:0 0 4px; font-weight:700; color:#1a6b4d;">Report processed successfully</p>
+      <p style="margin:0; color:var(--ink-soft); font-size:0.92rem;">
+        {% if extracted_count and extracted_count > 0 %}
+          {{ extracted_count }} test value{{ 's' if extracted_count != 1 else '' }} extracted from
+          <strong>{{ report.original_name }}</strong>.
+        {% else %}
+          <strong>{{ report.original_name }}</strong> was uploaded, but no known test values could be extracted.
+        {% endif %}
+      </p>
+       <a href="{{ url_for('review_report', report_id=report.id) }}" class="mt-btn mt-btn-outline" style="margin-top:12px; padding:7px 16px; font-size:0.85rem;">Check &amp; edit values</a>
+    </div>
+  </div>
+</div>
+
+<!-- Report details: shown automatically, no click required -->
+{% if extracted_count and extracted_count > 0 %}
+<div class="mt-card" style="max-width:560px; margin:0 auto 20px;">
+  <h4 style="margin:0 0 14px;">Extracted Test Values</h4>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <thead>
+      <tr style="text-align:left; color:var(--ink-soft); border-bottom:1px solid #eee;">
+        <th style="padding:6px 4px;">Test</th>
+        <th style="padding:6px 4px;">Value</th>
+        <th style="padding:6px 4px;">Reference Range</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for test in report.results %}
+      <tr style="border-bottom:1px solid #f3f3f3;">
+        <td style="padding:8px 4px;">{{ test.test_name }}</td>
+        <td style="padding:8px 4px;">{{ test.value }}{% if test.unit %} {{ test.unit }}{% endif %}</td>
+        <td style="padding:8px 4px;">
+          {% if test.ref_min is not none and test.ref_max is not none %}
+            {{ test.ref_min }}–{{ test.ref_max }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Two separate buttons -->
+  <div style="display:flex; gap:10px; margin-top:20px;">
+    <a href="{{ url_for('report_detail', report_id=report.id) }}" class="mt-btn mt-btn-ghost" style="flex:1; text-align:center;">
+      View Report Details
+    </a>
+    <a href="{{ url_for('export_summary_pdf') }}" class="mt-btn mt-btn-primary" style="flex:1; text-align:center;">
+      Download Report PDF
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="mt-card" style="max-width:560px; margin:0 auto;">
+  <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="upload-form">
+    <label class="mt-form-label" for="report_date">Report date</label>
+    <input class="mt-input" type="date" id="report_date" name="report_date" required>
+
+    <label class="mt-form-label">Report file</label>
+    <div class="mt-dropzone" id="dropzone">
+      <div class="mt-icon-circle">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-5 5M12 4l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </div>
+      <p style="margin:0; font-weight:600;">Drag &amp; drop your PDF here</p>
+      <p style="margin:4px 0 0; color:var(--ink-soft); font-size:0.88rem;">or click to browse</p>
+      <div id="file-chip-holder"></div>
+      <input type="file" id="report_file" name="report_file" accept="application/pdf" style="display:none;" required>
+    </div>
+
+    <button type="submit" class="mt-btn mt-btn-primary mt-btn-block mt-btn-lg" style="margin-top:22px;" id="submit-btn">
+      {% if success %}Upload another report{% else %}Extract &amp; save report{% endif %}
+    </button>
+  </form>
+</div>
+
+<!-- Recently uploaded files -->
+{% if recent_reports %}
+<div class="mt-card" style="max-width:560px; margin:20px auto 0;">
+  <h4 style="margin:0 0 14px;">Recently Uploaded</h4>
+  <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;">
+    {% for r in recent_reports %}
+    <li>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid #eee; border-radius:10px;">
+        <a href="{{ url_for('report_detail', report_id=r.id) }}"
+           style="display:flex; align-items:center; gap:10px; min-width:0; text-decoration:none; color:inherit; flex:1;">
+          <span style="font-size:1.1rem;">📄</span>
+          <div style="min-width:0;">
+            <p style="margin:0; font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;">
+              {{ r.original_name }}
+            </p>
+            <p style="margin:2px 0 0; color:var(--ink-soft); font-size:0.8rem;">
+              {{ r.uploaded_at.strftime('%d %b %Y, %I:%M %p') }}
+            </p>
+          </div>
+        </a>
+        <div style="display:flex; align-items:center; gap:14px; flex-shrink:0;">
+          <a href="{{ url_for('report_detail', report_id=r.id) }}"
+             style="color:var(--brand, #1F6F63); font-size:0.85rem; font-weight:600; text-decoration:none;">
+            View →
+          </a>
+          <form method="POST" action="{{ url_for('delete_report', report_id=r.id) }}"
+                onsubmit="return confirm('Delete this report permanently? This cannot be undone.');">
+            <button type="submit"
+                    style="background:#e4572e; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer;">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('report_file');
+const chipHolder = document.getElementById('file-chip-holder');
+const submitBtn = document.getElementById('submit-btn');
+const form = document.getElementById('upload-form');
+const defaultBtnText = submitBtn.textContent;
+
+dropzone.addEventListener('click', () => fileInput.click());
+
+['dragenter', 'dragover'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); })
+);
+['dragleave', 'drop'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); })
+);
+dropzone.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) {
+    fileInput.files = e.dataTransfer.files;
+    showChip(fileInput.files[0].name);
+  }
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) showChip(fileInput.files[0].name);
+});
+function showChip(name) {
+  chipHolder.innerHTML = `<span class="mt-file-chip">📄 ${name}</span>`;
+}
+form.addEventListener('submit', () => {
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Extracting text… parsing values…';
+});
+
+// First-time guide: ek baar "Got it" dabane ke baad dobara nahi dikhega
+const guide = document.getElementById('first-guide');
+if (guide) {
+  let seen = false;
+  try { seen = localStorage.getItem('mt_guide_done') === '1'; } catch (e) {}
+  if (!seen) guide.style.display = 'block';
+
+  document.getElementById('guide-dismiss').addEventListener('click', () => {
+    guide.style.display = 'none';
+    try { localStorage.setItem('mt_guide_done', '1'); } catch (e) {}
+  });
+}
+</script>
+{% endblock %}

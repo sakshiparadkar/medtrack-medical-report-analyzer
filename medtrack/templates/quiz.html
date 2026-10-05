@@ -1,0 +1,298 @@
+{% extends "base.html" %} 
+{% block title %}Health Quiz — MedTrack{% endblock %} 
+ 
+{% block content %} 
+<div class="mt-page-head"> 
+  <div> 
+    <h1>🎯 Health Quiz</h1> 
+    <p>10 quick questions about everyday health — let's see how health-smart you are!</p> 
+  </div> 
+</div> 
+
+<div class="quiz-row"> 
+
+  <div class="mt-card" style="max-width:640px; margin:0;"> 
+    <div id="quiz-progress" style="margin-bottom:16px; font-size:0.85rem; color:var(--ink-soft); font-weight:600;"> 
+      Question <span id="q-num">1</span> / 10 
+    </div> 
+
+    <div id="quiz-body"></div> 
+
+    <div id="quiz-result" style="display:none; text-align:center; padding:20px 0;"> 
+      <div style="font-size:2.6rem; font-weight:700; font-family:'Space Grotesk', sans-serif; color:var(--primary);" id="final-score"></div> 
+      <p id="final-message" style="font-size:1.05rem; margin:10px 0 24px;"></p> 
+      <button class="mt-btn mt-btn-primary" onclick="restartQuiz()">Try Again</button> 
+    </div> 
+  </div> 
+
+</div> 
+
+<style> 
+.quiz-row { 
+  display: flex; 
+  align-items: stretch; 
+  justify-content: center; 
+  gap: 24px; 
+  flex-wrap: wrap; 
+  max-width: 1100px; 
+  margin: 0 auto; 
+} 
+
+.quiz-side-img { 
+  width: 280px; 
+  height: auto; 
+  border-radius: 20px; 
+  flex-shrink: 0; 
+} 
+
+.quiz-side-right { 
+  align-self: flex-start; 
+  margin-top: -45px; 
+}
+
+@media (max-width: 1100px) { 
+  .quiz-side-img { 
+    display: none; 
+  } 
+} 
+</style> 
+
+{% endblock %} 
+ 
+{% block scripts %} 
+<script> 
+
+const QUESTIONS = [ 
+
+  { 
+    q: "How can you help your body stay properly hydrated? 💧", 
+    options: [ 
+      "Drink water regularly throughout the day", 
+      "Drink water only when extremely thirsty", 
+      "Drink water only before sleeping", 
+      "Avoid water during the day" 
+    ], 
+    correct: 0, 
+    exp: "Regular water intake throughout the day helps your body maintain proper hydration." 
+  }, 
+
+  { 
+    q: "How much sleep is generally recommended for a healthy young adult? 😴", 
+    options: [ 
+      "3–4 hours", 
+      "5 hours", 
+      "7–9 hours", 
+      "12–14 hours" 
+    ], 
+    correct: 2, 
+    exp: "Most healthy adults generally need around 7–9 hours of sleep each night." 
+  }, 
+
+  { 
+    q: "Which activity can help improve flexibility and reduce stress? 🧘", 
+    options: [ 
+      "Yoga", 
+      "Skipping meals", 
+      "Staying awake all night", 
+      "Sitting all day" 
+    ], 
+    correct: 0, 
+    exp: "Yoga combines movement, stretching and breathing, which can support flexibility and relaxation." 
+  }, 
+
+  { 
+    q: "Which practice can help you relax and manage everyday stress? 🧠", 
+    options: [ 
+      "Meditation", 
+      "Skipping sleep", 
+      "Constant screen time", 
+      "Skipping meals" 
+    ], 
+    correct: 0, 
+    exp: "Meditation and mindful breathing can help promote relaxation and manage everyday stress." 
+  }, 
+
+  { 
+    q: "How often should you include walking or other physical activity in your routine? 🚶", 
+    options: [ 
+      "Only once a month", 
+      "Regularly", 
+      "Only when you feel sick", 
+      "Never" 
+    ], 
+    correct: 1, 
+    exp: "Regular physical activity is an important part of maintaining overall health." 
+  }, 
+
+  { 
+    q: "Getting some sunlight helps your body produce which vitamin? ☀️", 
+    options: [ 
+      "Vitamin A", 
+      "Vitamin B12", 
+      "Vitamin D", 
+      "Vitamin C" 
+    ], 
+    correct: 2, 
+    exp: "Sunlight exposure helps your skin produce Vitamin D, which is important for bone and overall health." 
+  }, 
+
+  { 
+    q: "If your skin feels dry, which basic habit is worth checking first? 💧", 
+    options: [ 
+      "Whether you are drinking enough water", 
+      "Whether you are sleeping only 2 hours", 
+      "Whether you are skipping meals", 
+      "Whether you are avoiding all physical activity" 
+    ], 
+    correct: 0, 
+    exp: "Adequate hydration is one basic part of supporting healthy skin, although dryness can have many causes." 
+  }, 
+
+  { 
+    q: "Which habit can support healthier skin and hair? ✨", 
+    options: [ 
+      "Getting enough sleep", 
+      "Sleeping at random times", 
+      "Skipping meals regularly", 
+      "Drinking very little water" 
+    ], 
+    correct: 0, 
+    exp: "Adequate sleep, good nutrition and hydration all contribute to overall skin and hair health." 
+  }, 
+
+  { 
+    q: "If someone has a heart condition and wants to start exercising, what should they do first? ❤️", 
+    options: [ 
+      "Follow their doctor's advice", 
+      "Immediately start intense workouts", 
+      "Avoid all physical activity forever", 
+      "Exercise without considering their condition" 
+    ], 
+    correct: 0, 
+    exp: "People with heart conditions should follow their healthcare professional's advice about safe physical activity." 
+  }, 
+
+  { 
+    q: "Which combination is generally best for maintaining overall health? 🌱", 
+    options: [ 
+      "Good sleep + balanced diet + regular physical activity", 
+      "Less sleep + more caffeine", 
+      "Skipping meals + no exercise", 
+      "Staying indoors all day" 
+    ], 
+    correct: 0, 
+    exp: "Healthy sleep, balanced nutrition and regular physical activity work together to support overall health." 
+  } 
+
+]; 
+ 
+let current = 0; 
+let score = 0; 
+let answered = false; 
+ 
+function renderQuestion() { 
+  answered = false; 
+  const q = QUESTIONS[current]; 
+  document.getElementById("q-num").textContent = current + 1; 
+  const body = document.getElementById("quiz-body"); 
+ 
+  body.innerHTML = ` 
+    <h3 style="font-size:1.1rem; margin-bottom:16px;">${q.q}</h3> 
+    <div id="options-wrap"></div> 
+    <p id="exp-text" style="display:none; margin-top:14px; font-size:0.9rem; color:var(--ink-soft);"></p> 
+    <button class="mt-btn mt-btn-primary" id="next-btn" style="display:none; margin-top:16px;" onclick="nextQuestion()"> 
+      ${current === QUESTIONS.length - 1 ? "See my score" : "Next question"} 
+    </button> 
+  `; 
+ 
+  const optWrap = document.getElementById("options-wrap"); 
+ 
+  q.options.forEach((opt, i) => { 
+    const btn = document.createElement("button"); 
+    btn.className = "mt-btn mt-btn-ghost mt-btn-block"; 
+    btn.style.textAlign = "left"; 
+    btn.style.marginBottom = "8px"; 
+    btn.textContent = opt; 
+    btn.onclick = () => selectAnswer(i); 
+    optWrap.appendChild(btn); 
+  }); 
+} 
+ 
+function selectAnswer(i) { 
+  if (answered) return; 
+  answered = true; 
+ 
+  const q = QUESTIONS[current]; 
+  const buttons = document.querySelectorAll("#options-wrap button"); 
+ 
+  buttons.forEach((b, idx) => { 
+    b.disabled = true; 
+ 
+    if (idx === q.correct) { 
+      b.style.background = "var(--primary-wash)"; 
+      b.style.borderColor = "var(--primary)"; 
+      b.style.color = "var(--primary)"; 
+    } else if (idx === i) { 
+      b.style.background = "var(--abnormal-wash)"; 
+      b.style.borderColor = "var(--abnormal)"; 
+      b.style.color = "var(--abnormal)"; 
+    } 
+  }); 
+ 
+  if (i === q.correct) score++; 
+ 
+  const expEl = document.getElementById("exp-text"); 
+  expEl.textContent = (i === q.correct ? "✅ Correct — " : "❌ Not quite — ") + q.exp; 
+  expEl.style.display = "block"; 
+ 
+  document.getElementById("next-btn").style.display = "inline-flex"; 
+} 
+ 
+function nextQuestion() { 
+  current++; 
+ 
+  if (current < QUESTIONS.length) { 
+    renderQuestion(); 
+  } else { 
+    showResult(); 
+  } 
+} 
+ 
+function showResult() { 
+  document.getElementById("quiz-progress").style.display = "none"; 
+  document.getElementById("quiz-body").style.display = "none"; 
+  document.getElementById("quiz-result").style.display = "block"; 
+ 
+  document.getElementById("final-score").textContent = score + " / 10"; 
+ 
+  let msg; 
+ 
+if (score >= 9) {
+  msg = "🧠 Health Pro! Looks like you actually read something besides social media posts.";
+} else if (score >= 7) {
+  msg = "🔥 Pretty Healthy! Your health knowledge is doing better than your screen time.";
+} else if (score >= 5) {
+  msg = "😄 Not Bad! Maybe spend 10 minutes on health instead of 10 hours scrolling.";
+} else if (score >= 3) {
+  msg = "📱 Health Rookie! Less scrolling, more learning — your body will thank you.";
+} else {
+  msg = "😂 Your health knowledge needs an update. Maybe Google less and MedTrack more!";
+}
+  document.getElementById("final-message").textContent = msg; 
+} 
+ 
+function restartQuiz() { 
+  current = 0; 
+  score = 0; 
+ 
+  document.getElementById("quiz-progress").style.display = "block"; 
+  document.getElementById("quiz-body").style.display = "block"; 
+  document.getElementById("quiz-result").style.display = "none"; 
+ 
+  renderQuestion(); 
+} 
+ 
+renderQuestion(); 
+
+</script> 
+{% endblock %}
