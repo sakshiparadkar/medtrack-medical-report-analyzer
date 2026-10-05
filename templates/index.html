@@ -1,0 +1,1007 @@
+{% extends "base.html" %}
+{% block title %}MedTrack — Understand your lab reports over time{% endblock %}
+
+{% block content %}
+<div class="lp">
+<div class="lp-wrap">
+
+  <!-- ============ 1. HERO ============ -->
+  <section class="lp-hero">
+    <div class="lp-hero-copy">
+      <span class="lp-pill-tag">Final Year Project · Health Analytics</span>
+      <h1>Every lab report you've ever had, read once and <em>tracked forever.</em></h1>
+      <p class="lp-lede">
+        Upload a PDF lab report. MedTrack extracts each test value automatically,
+        checks it against normal ranges, and plots how your numbers move over time.
+        No manual data entry, no spreadsheets.
+      </p>
+      <div class="lp-ctas">
+        <a href="{{ url_for('login') }}" class="lp-btn lp-btn-primary">Get started</a>
+        <button type="button" class="lp-btn lp-btn-outline" id="mtHeroDemoBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          Watch demo
+        </button>
+        <a href="/quiz" class="lp-link">Take the health quiz →</a>
+      </div>
+      <p class="lp-note">Informational tool, not medical advice.</p>
+    </div>
+
+    <div class="lp-art">
+      <div class="lp-orb">
+        <img class="lp-body"
+             src="{{ url_for('static', filename='imgs/body_illustration.png') }}"
+             alt="Body illustration with brain, heart, lungs and kidneys highlighted">
+      </div>
+
+      <div class="lp-card lp-card-brain" data-organ="brain" tabindex="0" role="button" aria-label="Vitamins and sugar tests">
+        <div class="lp-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 4a3 3 0 0 0-3 3v.3A3 3 0 0 0 4 10a3 3 0 0 0 1 5.6A3 3 0 0 0 8 19a3 3 0 0 0 5-2V6a2 2 0 0 0-2-2H9Z"/><path d="M15 4a3 3 0 0 1 3 3v.3A3 3 0 0 1 20 10a3 3 0 0 1-1 5.6 3 3 0 0 1-3 3.4"/></svg>
+        </div>
+        <h3>Vitamins &amp; Sugar</h3>
+        <p>Vitamin D, B12, Glucose</p>
+        <span class="lp-chip warn">Vitamin D · Low</span>
+      </div>
+
+      <div class="lp-card lp-card-heart" data-organ="heart" tabindex="0" role="button" aria-label="Heart tests">
+        <div class="lp-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2 0 3.6 1 4.8 2.7C12.2 5.5 13.8 4.5 15.8 4.5c3.6 0 5.7 3.5 4.2 7.2C19.5 16.4 12 21 12 21Z"/></svg>
+        </div>
+        <h3>Heart</h3>
+        <p>Cholesterol, LDL, HDL, Triglycerides</p>
+        <span class="lp-chip review">Cholesterol · Review</span>
+      </div>
+
+      <div class="lp-card lp-card-lungs" data-organ="lungs" tabindex="0" role="button" aria-label="Blood tests">
+        <div class="lp-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v7"/><path d="M12 10c-1-3-4-3-6-2S3 12 3 15c0 3 2 5 4 5 1.5 0 2-1 2-3v-5"/><path d="M12 10c1-3 4-3 6-2s3 4 3 7c0 3-2 5-4 5-1.5 0-2-1-2-3v-5"/></svg>
+        </div>
+        <h3>Blood</h3>
+        <p>Hemoglobin, WBC, Platelets</p>
+        <span class="lp-chip ok">Hemoglobin · Normal</span>
+      </div>
+
+      <div class="lp-card lp-card-kidneys" data-organ="kidneys" tabindex="0" role="button" aria-label="Kidney tests">
+        <div class="lp-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 4C4 4 3 9 3 13c0 5 3 7 5 7 2.5 0 3-2 2.5-5"/><path d="M16 4c4 0 5 5 5 9 0 5-3 7-5 7-2.5 0-3-2-2.5-5"/></svg>
+        </div>
+        <h3>Kidneys</h3>
+        <p>Creatinine, Urea, eGFR</p>
+        <span class="lp-chip ok">Creatinine · Normal</span>
+      </div>
+
+      <div class="lp-panel" id="lpPanel" aria-live="polite">
+        <div class="lp-panel-title" id="lpPanelTitle"></div>
+        <div id="lpPanelList"></div>
+        <div class="lp-panel-note">Sample values</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live ECG line -->
+  <svg class="lp-ecg" viewBox="0 0 1000 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path class="lp-ecg-base" vector-effect="non-scaling-stroke" d="M0,40 L60,40 L72,34 L84,40 L104,40 L114,48 L124,6 L136,72 L148,40 L176,40 L192,30 L210,40 L250,40 L310,40 L322,34 L334,40 L354,40 L364,48 L374,6 L386,72 L398,40 L426,40 L442,30 L460,40 L500,40 L560,40 L572,34 L584,40 L604,40 L614,48 L624,6 L636,72 L648,40 L676,40 L692,30 L710,40 L750,40 L810,40 L822,34 L834,40 L854,40 L864,48 L874,6 L886,72 L898,40 L926,40 L942,30 L960,40 L1000,40"/>
+    <path class="lp-ecg-glow" pathLength="1" vector-effect="non-scaling-stroke" d="M0,40 L60,40 L72,34 L84,40 L104,40 L114,48 L124,6 L136,72 L148,40 L176,40 L192,30 L210,40 L250,40 L310,40 L322,34 L334,40 L354,40 L364,48 L374,6 L386,72 L398,40 L426,40 L442,30 L460,40 L500,40 L560,40 L572,34 L584,40 L604,40 L614,48 L624,6 L636,72 L648,40 L676,40 L692,30 L710,40 L750,40 L810,40 L822,34 L834,40 L854,40 L864,48 L874,6 L886,72 L898,40 L926,40 L942,30 L960,40 L1000,40"/>
+  </svg>
+
+  <!-- Quick facts -->
+  <div class="lp-facts lp-reveal-group">
+    <div class="lp-fact lp-reveal-item"><b>0</b><span>manual typing</span></div>
+    <div class="lp-fact lp-reveal-item"><b>5</b><span>steps from PDF to insights</span></div>
+    <div class="lp-fact lp-reveal-item"><b>4</b><span>severity levels per value</span></div>
+    <div class="lp-fact lp-reveal-item"><b>Free</b><span>public health quiz</span></div>
+  </div>
+
+  <!-- ============ 2. HOW IT WORKS ============ -->
+  <section class="lp-section" id="how-it-works">
+    <div class="lp-head lp-reveal">
+      <span class="lp-eyebrow">How it works</span>
+      <h2 class="lp-h2">From PDF to insight in five steps</h2>
+      <p class="lp-sub">Scroll to follow one report through the pipeline.</p>
+    </div>
+
+    <div class="lp-story" id="lpStory">
+      <div class="lp-steps">
+        <div class="lp-step active" data-step="1">
+          <div class="lp-num">1</div>
+          <h3>Upload</h3>
+          <p>Drop in a digital PDF lab report. No scanning or manual typing needed.</p>
+        </div>
+        <div class="lp-step" data-step="2">
+          <div class="lp-num">2</div>
+          <h3>Extract</h3>
+          <p><code>pdfplumber</code> pulls the raw text, then regex and a reference-list matcher find each test name, value, unit and range.</p>
+        </div>
+        <div class="lp-step" data-step="3">
+          <div class="lp-num">3</div>
+          <h3>Validate</h3>
+          <p>Every value is checked against its reference range and flagged normal, abnormal, or needs review.</p>
+        </div>
+        <div class="lp-step" data-step="4">
+          <div class="lp-num">4</div>
+          <h3>Store</h3>
+          <p>Structured results are saved to a SQLite database, linked to your account and report date.</p>
+        </div>
+        <div class="lp-step" data-step="5">
+          <div class="lp-num">5</div>
+          <h3>Visualize</h3>
+          <p>Interactive Plotly charts and comparisons show how your numbers move over time.</p>
+        </div>
+      </div>
+
+      <div class="lp-stage-wrap">
+        <div class="lp-stage">
+          <div class="lp-stage-bar">
+            <i></i><i></i><i></i>
+            <span id="lpStageLabel">Step 1 · Upload</span>
+          </div>
+
+          <div class="lp-stage-body">
+            <!-- Scene 1: Upload -->
+            <div class="lp-scene active" data-scene="1">
+              <div class="lp-paper">
+                <div class="lp-paper-title">City Diagnostics Lab</div>
+                <div class="lp-skel w95"></div>
+                <div class="lp-skel w80"></div>
+                <div class="lp-skel w60"></div>
+                <div class="lp-skel w88"></div>
+                <div class="lp-skel w70"></div>
+                <div class="lp-skel w80"></div>
+              </div>
+              <div class="lp-scene-pill">lab_report_aug.pdf</div>
+            </div>
+
+            <!-- Scene 2: Extract -->
+            <div class="lp-scene" data-scene="2">
+              <div class="lp-paper">
+                <div class="lp-xrow"><span>Hemoglobin</span><span class="lp-hl">14.2 g/dL</span><span>13–17</span></div>
+                <div class="lp-xrow"><span>Glucose (F)</span><span class="lp-hl">128 mg/dL</span><span>70–100</span></div>
+                <div class="lp-xrow"><span>WBC Count</span><span class="lp-hl">7.8 x10³</span><span>4–11</span></div>
+                <div class="lp-xrow"><span>Cholesterol</span><span class="lp-hl">215 mg/dL</span><span>&lt;200</span></div>
+              </div>
+              <div class="lp-scene-pill lp-mono">regex + reference list</div>
+            </div>
+
+            <!-- Scene 3: Validate -->
+            <div class="lp-scene" data-scene="3">
+              <div class="lp-paper">
+                <div class="lp-vrow"><span>Hemoglobin</span><span>14.2 g/dL</span><span class="lp-chip ok">Normal</span></div>
+                <div class="lp-vrow"><span>Glucose (F)</span><span>128 mg/dL</span><span class="lp-chip warn">Abnormal</span></div>
+                <div class="lp-vrow"><span>WBC Count</span><span>7.8 x10³</span><span class="lp-chip ok">Normal</span></div>
+                <div class="lp-vrow"><span>Cholesterol</span><span>215 mg/dL</span><span class="lp-chip review">Needs review</span></div>
+              </div>
+            </div>
+
+            <!-- Scene 4: Store -->
+            <div class="lp-scene" data-scene="4">
+              <div class="lp-fly lp-fly1">Glucose · 128</div>
+              <div class="lp-fly lp-fly2">Hemoglobin · 14.2</div>
+              <div class="lp-fly lp-fly3">Cholesterol · 215</div>
+              <svg class="lp-db" viewBox="0 0 120 120" fill="none">
+                <ellipse cx="60" cy="26" rx="42" ry="14" fill="#E0E3FF" stroke="#4F46E5" stroke-width="2.5"/>
+                <path d="M18 26v34c0 7.7 18.8 14 42 14s42-6.3 42-14V26" fill="#EEF0FF" stroke="#4F46E5" stroke-width="2.5"/>
+                <path d="M18 60v34c0 7.7 18.8 14 42 14s42-6.3 42-14V60" fill="#EEF0FF" stroke="#4F46E5" stroke-width="2.5"/>
+                <ellipse cx="60" cy="60" rx="42" ry="14" fill="none" stroke="#B9BFF5" stroke-width="2"/>
+              </svg>
+              <div class="lp-db-label">SQLite · linked to your account &amp; report date</div>
+            </div>
+
+            <!-- Scene 5: Visualize -->
+            <div class="lp-scene" data-scene="5">
+              <div class="lp-paper lp-paper-chart">
+                <div class="lp-paper-title">Glucose over 5 reports</div>
+                <svg viewBox="0 0 360 210" class="lp-svg" role="img" aria-label="Sample glucose trend">
+                  <rect x="20" y="100" width="320" height="60" rx="6" fill="#D1FAE5" opacity=".8"/>
+                  <text x="26" y="114" font-size="9" fill="#047857">Normal 70–100</text>
+                  <line x1="20" y1="180" x2="340" y2="180" stroke="#E4E7F1"/>
+                  <polyline class="lp-s-line" pathLength="1" points="40,116 110,92 180,64 250,44 320,56"
+                            fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <g fill="#fff" stroke="#4F46E5" stroke-width="2.5">
+                    <circle class="lp-s-dot d1" cx="40" cy="116" r="5"/>
+                    <circle class="lp-s-dot d2" cx="110" cy="92" r="5"/>
+                    <circle class="lp-s-dot d3" cx="180" cy="64" r="5" stroke="#DC2626"/>
+                    <circle class="lp-s-dot d4" cx="250" cy="44" r="5" stroke="#DC2626"/>
+                    <circle class="lp-s-dot d5" cx="320" cy="56" r="5" stroke="#DC2626"/>
+                  </g>
+                  <g font-size="9" fill="#667085" text-anchor="middle">
+                    <text x="40" y="198">R1</text><text x="110" y="198">R2</text>
+                    <text x="180" y="198">R3</text><text x="250" y="198">R4</text><text x="320" y="198">R5</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="lp-dots"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. FEATURES ============ -->
+  <section class="lp-section" id="features">
+    <div class="lp-head lp-reveal">
+      <span class="lp-eyebrow">Features</span>
+      <h2 class="lp-h2">Everything in one place</h2>
+      <p class="lp-sub">From the first upload to a summary you can share with your doctor.</p>
+    </div>
+
+    <div class="lp-grid lp-reveal-group">
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h4"/></svg></div>
+        <h3>Automatic extraction</h3>
+        <p>Test name, value, unit and range are pulled from your PDF with rule-based matching. No typing, and every result is explainable.</p>
+      </div>
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18h4v-4H4zM10 18h4V9h-4zM16 18h4V5h-4z"/></svg></div>
+        <h3>Clear severity levels</h3>
+        <p>Values outside their range are marked yellow, orange or red depending on how far they are, so the important ones stand out at a glance.</p>
+      </div>
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,5"/><polyline points="15,5 21,5 21,11"/></svg></div>
+        <h3>Trends and alerts</h3>
+        <p>See how each test moves across reports, spot values that keep rising, and get a notice when a value is outside your usual pattern.</p>
+      </div>
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="16" rx="1.5"/><rect x="14" y="4" width="7" height="16" rx="1.5"/></svg></div>
+        <h3>Compare and timeline</h3>
+        <p>Put two reports side by side, or scroll a timeline that shows what improved and what got worse since the last report.</p>
+      </div>
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg></div>
+        <h3>Goals and health score</h3>
+        <p>Set a target like "sugar below 100" and watch a progress bar fill up, with one simple score for your latest report.</p>
+      </div>
+      <div class="lp-feat lp-reveal-item">
+        <div class="lp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+        <h3>Private and exportable</h3>
+        <p>Reports are linked to your account and visible only after you sign in. Export a clean one-page PDF summary any time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. TREND PREVIEW ============ -->
+  <section class="lp-section lp-trend lp-reveal">
+    <div class="lp-trend-copy">
+      <span class="lp-eyebrow">Trends</span>
+      <h2 class="lp-h2" style="text-align:left;">See the trend, not just the number</h2>
+      <p>One number tells you little. Five reports tell a story. MedTrack plots every test over time against its normal range, so a slow climb is obvious long before it becomes a problem.</p>
+      <p class="lp-small">Sample data shown for illustration.</p>
+    </div>
+    <div class="lp-trend-card">
+      <div class="lp-trend-title">Glucose (Fasting) · mg/dL</div>
+      <svg viewBox="0 0 540 230" class="lp-svg" role="img" aria-label="Sample glucose trend rising above the normal range">
+        <rect x="40" y="105" width="480" height="63.75" rx="6" fill="#D1FAE5" opacity=".8"/>
+        <text x="46" y="119" font-size="10" fill="#047857">Normal 70–100</text>
+        <line x1="40" y1="190" x2="520" y2="190" stroke="#E4E7F1" stroke-width="1"/>
+        <polyline class="lp-trend-line" pathLength="1" points="70,122 175,96.5 280,66.75 385,45.5 490,58.25"
+                  fill="none" stroke="#4F46E5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <g fill="#fff" stroke="#4F46E5" stroke-width="2.5">
+          <circle cx="70" cy="122" r="5"/><circle cx="175" cy="96.5" r="5"/>
+          <circle cx="280" cy="66.75" r="5" stroke="#DC2626"/><circle cx="385" cy="45.5" r="5" stroke="#DC2626"/>
+          <circle cx="490" cy="58.25" r="5" stroke="#DC2626"/>
+        </g>
+        <g font-size="10" fill="#667085" text-anchor="middle">
+          <text x="70" y="208">Report 1</text><text x="175" y="208">Report 2</text>
+          <text x="280" y="208">Report 3</text><text x="385" y="208">Report 4</text>
+          <text x="490" y="208">Report 5</text>
+        </g>
+        <g font-size="10" fill="#151A2D" text-anchor="middle" font-weight="600">
+          <text x="70" y="112">92</text><text x="175" y="86">104</text>
+          <text x="280" y="56">118</text><text x="385" y="35">128</text>
+          <text x="490" y="48">122</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 5. QUIZ TEASER ============ -->
+  <section class="lp-section">
+    <div class="lp-quiz lp-reveal">
+      <div>
+        <h3>Not ready to upload a report?</h3>
+        <p>Take the quick health quiz. About a minute, no login needed.</p>
+      </div>
+      <a href="/quiz" class="lp-btn lp-btn-primary">Start the quiz</a>
+    </div>
+  </section>
+
+  <!-- ============ 6. FAQ ============ -->
+  <section class="lp-section">
+    <div class="lp-head lp-reveal">
+      <span class="lp-eyebrow">FAQ</span>
+      <h2 class="lp-h2">Questions, answered</h2>
+    </div>
+    <div class="lp-faq lp-reveal">
+      <details class="lp-faq-item">
+        <summary>Which reports are supported?</summary>
+        <p>Digital (text-based) PDF lab reports. Scanned reports and photos are on the roadmap through OCR.</p>
+      </details>
+      <details class="lp-faq-item">
+        <summary>How are values marked abnormal?</summary>
+        <p>Each value is compared with the reference range printed in the report or with MedTrack's reference list, then flagged Normal, Abnormal, or Needs Review.</p>
+      </details>
+      <details class="lp-faq-item">
+        <summary>What does "Needs Review" mean?</summary>
+        <p>The value or range couldn't be read with confidence, so MedTrack asks you to double-check it instead of guessing.</p>
+      </details>
+      <details class="lp-faq-item">
+        <summary>Can I use it without an account?</summary>
+        <p>The health quiz is public. Uploading and tracking reports needs a free account so your data stays yours.</p>
+      </details>
+      <details class="lp-faq-item">
+        <summary>Is this a replacement for a doctor?</summary>
+        <p>No. MedTrack helps you organize and understand your numbers; medical decisions should always involve a professional.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ 7. FINAL CTA ============ -->
+  <section class="lp-section">
+    <div class="lp-final lp-reveal">
+      <h2 class="lp-h2">Ready to understand your health data?</h2>
+      <p>Upload your first report and see your numbers in seconds.</p>
+      <div class="lp-ctas" style="justify-content:center;">
+        <a href="{{ url_for('login') }}" class="lp-btn lp-btn-primary">Upload your first report</a>
+        <a href="/quiz" class="lp-link">or take the quiz →</a>
+      </div>
+      <p class="lp-small" style="margin-top:18px;">MedTrack is an informational tool and does not provide medical advice.</p>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<!-- ===== Watch Demo — modal (triggered from navbar or hero button) ===== -->
+<div class="mt-watch-modal" id="mtWatchDemoModal" role="dialog" aria-modal="true" aria-label="MedTrack demo">
+  <div class="mt-watch-modal-inner">
+    <button class="mt-watch-modal-close" id="mtWatchDemoClose" aria-label="Close">&times;</button>
+    <h2 class="mt-lp-heading" style="margin-top:0;">Watch it work</h2>
+    <div class="mt-demo-wrap">
+
+      <div class="mt-demo-doc">
+        <div class="mt-demo-doc-head">
+          <span class="mt-mock-dot red"></span><span class="mt-mock-dot yellow"></span><span class="mt-mock-dot green"></span>
+          <span class="mt-demo-doc-title">lab_report_aug.pdf</span>
+        </div>
+        <div class="mt-demo-doc-body">
+          <div class="mt-report-header">
+            <div class="mt-report-logo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M2 12h20" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div class="mt-report-clinic">City Diagnostics Lab</div>
+              <div class="mt-report-sub">Complete Blood Count Report</div>
+            </div>
+          </div>
+
+          <div class="mt-report-meta">
+            <span>Patient: <b>A. Sharma</b></span>
+            <span>Date: <b>18 Aug 2026</b></span>
+          </div>
+
+          <div class="mt-report-table">
+            <div class="mt-report-row mt-report-row-head">
+              <span>Test</span><span>Result</span><span>Range</span>
+            </div>
+            <div class="mt-report-row"><span>Hemoglobin</span><span>14.2 g/dL</span><span>13–17</span></div>
+            <div class="mt-report-row mt-report-row-flag"><span>Glucose (F)</span><span>128 mg/dL</span><span>70–100</span></div>
+            <div class="mt-report-row"><span>WBC Count</span><span>7.8 x10³</span><span>4–11</span></div>
+            <div class="mt-report-row mt-report-row-flag-mild"><span>Cholesterol</span><span>215 mg/dL</span><span>&lt;200</span></div>
+            <div class="mt-report-row"><span>Platelets</span><span>250 x10³</span><span>150–410</span></div>
+          </div>
+
+          <div class="mt-demo-scan-laser"></div>
+        </div>
+      </div>
+
+      <div class="mt-demo-arrow">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div class="mt-demo-table-card">
+        <div class="mt-demo-table-head">
+          <span>Test</span><span>Value</span><span>Status</span>
+        </div>
+        <div class="mt-demo-table-body" id="mtDemoTableBody"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ===== Colors: change the accent here and the whole page follows ===== */
+  .lp{
+    --lp-accent:#4F46E5;
+    --lp-accent-d:#4338CA;
+    --lp-tint:#EEF0FF;
+    --lp-tint-line:#DADFFB;
+    --lp-ink:#151A2D;
+    --lp-text:#3A4157;
+    --lp-muted:#667085;
+    --lp-line:#E4E7F1;
+    --lp-card:#FFFFFF;
+    color:var(--lp-text);
+    font-family:Inter, system-ui, sans-serif;
+  }
+  .lp *{ box-sizing:border-box; }
+  .lp-wrap{ max-width:1160px; margin:0 auto; padding:0 8px; }
+  .lp h1, .lp h2, .lp h3{ font-family:"Space Grotesk", Inter, sans-serif; color:var(--lp-ink); }
+  .lp-section{ padding-top:104px; }
+  .lp-head{ text-align:center; margin-bottom:44px; }
+  .lp-eyebrow{
+    display:inline-block; font-size:12px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--lp-accent); margin-bottom:12px;
+  }
+  .lp-h2{
+    font-size:clamp(1.8rem, 3.2vw, 2.6rem); font-weight:600; letter-spacing:-.02em;
+    line-height:1.15; margin:0 0 12px; text-align:center;
+  }
+  .lp-sub{ color:var(--lp-muted); font-size:15.5px; margin:0; }
+  .lp-small{ font-size:12.5px; color:var(--lp-muted); margin:0; }
+
+  /* ===== Buttons ===== */
+  .lp-ctas{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:30px; }
+  .lp-btn{
+    display:inline-flex; align-items:center; gap:8px; font-family:inherit;
+    font-size:15px; font-weight:600; text-decoration:none; cursor:pointer;
+    padding:13px 26px; border-radius:10px; border:1px solid transparent;
+    transition:background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+  }
+  .lp-btn-primary{ background:var(--lp-accent); color:#fff; }
+  .lp-btn-primary:hover{ background:var(--lp-accent-d); color:#fff; transform:translateY(-1px); }
+  .lp-btn-outline{ background:#fff; color:var(--lp-ink); border-color:#CBD0E5; }
+  .lp-btn-outline:hover{ border-color:var(--lp-accent); color:var(--lp-accent); }
+  .lp-link{ color:var(--lp-text); font-weight:500; font-size:15px; text-decoration:none; padding:6px 4px; }
+  .lp-link:hover{ color:var(--lp-accent); }
+  .lp-note{ margin:16px 0 0; font-size:12.5px; color:var(--lp-muted); }
+
+  /* ===== Hero ===== */
+  .lp-hero{
+    position:relative; display:grid; grid-template-columns:1.05fr .95fr; gap:40px; align-items:center;
+    padding-top:64px; min-height:600px;
+  }
+  .lp-hero::before{
+    content:""; position:absolute; z-index:0; pointer-events:none;
+    top:-60px; right:-120px; width:620px; height:620px; border-radius:50%;
+    background:radial-gradient(circle, rgba(79,70,229,.10), transparent 68%);
+  }
+  .lp-hero > *{ position:relative; z-index:1; }
+  .lp-pill-tag{
+    display:inline-block; font-size:12px; font-weight:500; color:var(--lp-muted);
+    background:#fff; border:1px solid var(--lp-line); border-radius:999px; padding:6px 14px; margin-bottom:22px;
+  }
+  .lp-hero h1{
+    font-size:clamp(2.3rem, 4.6vw, 3.7rem); font-weight:600; letter-spacing:-.03em;
+    line-height:1.07; margin:0 0 20px;
+  }
+  .lp-hero h1 em{ font-style:normal; color:var(--lp-accent); }
+  .lp-lede{ font-size:17px; line-height:1.7; color:var(--lp-text); max-width:540px; margin:0; }
+
+  /* Hero art */
+  .lp-art{ position:relative; height:560px; }
+  .lp-orb{
+    position:absolute; left:50%; top:47%; width:440px; height:440px;
+    transform:translate(-50%,-50%); border-radius:50%; overflow:hidden;
+    background:radial-gradient(circle at 50% 38%, #FFFFFF 0%, #EEF0FF 58%, #D9DDFB 100%);
+    border:1px solid var(--lp-tint-line);
+    box-shadow:0 30px 70px -30px rgba(79,70,229,.35);
+  }
+  /* multiply makes a white image background disappear into the orb */
+  .lp-body{
+    position:absolute; left:50%; top:50%; height:90%; width:auto;
+    transform:translate(-50%,-50%); mix-blend-mode:multiply; display:block;
+  }
+
+  .lp-card{
+    position:absolute; width:184px; z-index:2; cursor:pointer; outline:none;
+    background:var(--lp-card); border:1px solid var(--lp-line); border-radius:14px;
+    padding:12px 14px;
+    box-shadow:0 12px 28px -16px rgba(21,26,45,.25);
+    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+  }
+  .lp-card:hover, .lp-card:focus-visible, .lp-card.is-active{
+    border-color:var(--lp-accent); transform:translateY(-3px);
+    box-shadow:0 0 0 3px rgba(79,70,229,.12), 0 18px 34px -16px rgba(79,70,229,.4);
+  }
+  .lp-card-brain{ top:14px; left:-6px; }
+  .lp-card-heart{ top:206px; left:-22px; }
+  .lp-card-lungs{ top:54px; right:-10px; }
+  .lp-card-kidneys{ top:246px; right:-22px; }
+  .lp-badge{
+    width:32px; height:32px; border-radius:9px; margin-bottom:9px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--lp-tint); color:var(--lp-accent);
+  }
+  .lp-badge svg{ width:17px; height:17px; }
+  .lp-card h3{ margin:0 0 3px; font-size:13px; font-weight:600; }
+  .lp-card p{ margin:0 0 9px; font-size:11px; line-height:1.45; color:var(--lp-muted); }
+
+  .lp-chip{ display:inline-block; font-size:10.5px; font-weight:600; padding:3px 9px; border-radius:999px; }
+  .lp-chip.ok{ background:#D1FAE5; color:#047857; }
+  .lp-chip.warn{ background:#FEE2E2; color:#B91C1C; }
+  .lp-chip.review{ background:#FEF3C7; color:#B45309; }
+
+  .lp-panel{
+    position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:256px; z-index:3;
+    background:rgba(255,255,255,.96); border:1px solid var(--lp-line); border-radius:14px;
+    padding:12px 14px; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    box-shadow:0 20px 40px -22px rgba(21,26,45,.35);
+  }
+  .lp-panel.swap{ animation:lp-swap .35s ease; }
+  @keyframes lp-swap{
+    from{ opacity:.3; transform:translateX(-50%) translateY(6px); }
+    to{ opacity:1; transform:translateX(-50%) translateY(0); }
+  }
+  .lp-panel-title{ font-size:13px; font-weight:600; color:var(--lp-ink); margin-bottom:8px; }
+  .lp-prow{
+    display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--lp-text);
+    padding:5px 0; border-bottom:1px solid #EEF0F6;
+  }
+  .lp-prow:last-child{ border-bottom:none; }
+  .lp-panel-note{ margin-top:6px; font-size:10px; color:var(--lp-muted); text-align:right; }
+
+  /* ECG */
+  .lp-ecg{ width:100%; height:64px; display:block; margin:10px 0 0; }
+  .lp-ecg-base{ fill:none; stroke:#E1E4F2; stroke-width:1.6; stroke-linejoin:round; }
+  .lp-ecg-glow{
+    fill:none; stroke:var(--lp-accent); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:.12 1; stroke-dashoffset:.12;
+    animation:lp-ecg-run 3.6s linear infinite;
+  }
+  @keyframes lp-ecg-run{ to{ stroke-dashoffset:-1; } }
+
+  /* Facts */
+  .lp-facts{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+    border:1px solid var(--lp-line); border-radius:16px; margin-top:34px; overflow:hidden;
+    background:var(--lp-card);
+  }
+  .lp-fact{ padding:22px 20px; text-align:center; border-right:1px solid var(--lp-line); }
+  .lp-fact:last-child{ border-right:none; }
+  .lp-fact b{
+    display:block; font-family:"Space Grotesk", Inter, sans-serif; font-size:30px; font-weight:600;
+    color:var(--lp-ink); letter-spacing:-.02em;
+  }
+  .lp-fact span{ font-size:12.5px; color:var(--lp-muted); }
+
+  /* ===== Story ===== */
+  .lp-story{ display:grid; grid-template-columns:1fr 1.1fr; gap:60px; align-items:start; }
+  .lp-step{
+    min-height:60vh; display:flex; flex-direction:column; justify-content:center;
+    padding-left:28px; border-left:2px solid var(--lp-line);
+    opacity:.4; transition:opacity .35s ease, border-color .35s ease;
+  }
+  .lp-step.active{ opacity:1; border-left-color:var(--lp-accent); }
+  .lp-num{
+    width:36px; height:36px; border-radius:50%; margin-bottom:14px;
+    display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px;
+    background:#fff; border:1px solid #CBD0E5; color:var(--lp-text);
+    transition:background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .lp-step.active .lp-num{ background:var(--lp-accent); border-color:var(--lp-accent); color:#fff; }
+  .lp-step h3{ font-size:24px; font-weight:600; margin:0 0 8px; }
+  .lp-step p{ font-size:15px; line-height:1.7; color:var(--lp-text); margin:0; max-width:420px; }
+  .lp-step code{
+    background:var(--lp-tint); color:var(--lp-accent); padding:1px 6px; border-radius:6px; font-size:13px;
+  }
+
+  .lp-stage-wrap{ position:sticky; top:96px; align-self:start; }
+  .lp-stage{
+    background:var(--lp-card); border:1px solid var(--lp-line); border-radius:20px; overflow:hidden;
+    box-shadow:0 30px 60px -36px rgba(21,26,45,.35);
+  }
+  .lp-stage-bar{
+    display:flex; align-items:center; gap:6px; padding:12px 16px;
+    border-bottom:1px solid var(--lp-line); background:#FAFBFF;
+  }
+  .lp-stage-bar i{ width:9px; height:9px; border-radius:50%; background:#D5D9EA; display:block; }
+  .lp-stage-bar span{ margin-left:10px; font-size:12px; font-weight:500; color:var(--lp-muted); }
+  .lp-stage-body{ position:relative; height:340px; background:#F6F7FE; }
+  .lp-dots{ display:flex; gap:6px; justify-content:center; padding:12px 0 14px; }
+  .lp-dots i{ width:6px; height:6px; border-radius:99px; background:#D5D9EA; display:block; transition:width .3s ease, background .3s ease; }
+  .lp-dots i.on{ width:22px; background:var(--lp-accent); }
+
+  .lp-scene{
+    position:absolute; inset:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    opacity:0; transform:translateY(12px); pointer-events:none;
+    transition:opacity .4s ease, transform .4s ease;
+  }
+  .lp-scene.active{ opacity:1; transform:none; }
+
+  .lp-paper{
+    width:100%; max-width:330px; background:#fff; color:var(--lp-text); border:1px solid var(--lp-line);
+    border-radius:10px; padding:16px 18px;
+    box-shadow:0 16px 32px -20px rgba(21,26,45,.35);
+  }
+  .lp-paper-chart{ max-width:380px; }
+  .lp-paper-title{ font-size:12px; font-weight:700; color:var(--lp-ink); margin-bottom:6px; }
+  .lp-scene-pill{
+    font-size:12px; font-weight:500; color:var(--lp-accent); background:var(--lp-tint);
+    padding:7px 14px; border-radius:999px;
+  }
+  .lp-mono{ font-family:ui-monospace, Menlo, Consolas, monospace; }
+
+  .lp-skel{
+    height:9px; border-radius:6px; margin:10px 0;
+    background:linear-gradient(90deg,#EEF0F7,#F8F9FD,#EEF0F7); background-size:200% 100%;
+    animation:lp-shimmer 1.8s linear infinite;
+  }
+  .w95{ width:95%; } .w88{ width:88%; } .w80{ width:80%; } .w70{ width:70%; } .w60{ width:60%; }
+  @keyframes lp-shimmer{ to{ background-position:-200% 0; } }
+  .lp-scene.active[data-scene="1"] .lp-paper{ animation:lp-paper-in .7s cubic-bezier(.16,1,.3,1) both; }
+  .lp-scene.active[data-scene="1"] .lp-scene-pill{ animation:lp-pop .45s .45s ease both; }
+  @keyframes lp-paper-in{ from{ opacity:0; transform:translateY(-36px); } to{ opacity:1; transform:none; } }
+  @keyframes lp-pop{ from{ opacity:0; transform:scale(.7); } to{ opacity:1; transform:scale(1); } }
+
+  .lp-xrow{
+    display:grid; grid-template-columns:1.3fr 1fr .8fr; font-size:13px; padding:9px 0;
+    border-bottom:1px solid #EEF0F6; color:var(--lp-text);
+  }
+  .lp-xrow:last-child{ border-bottom:none; }
+  .lp-hl{ position:relative; z-index:0; font-weight:600; }
+  .lp-hl::before{
+    content:''; position:absolute; inset:-2px -5px; background:#E0E3FF; border-radius:5px;
+    z-index:-1; transform:scaleX(0); transform-origin:left;
+  }
+  .lp-scene.active[data-scene="2"] .lp-hl::before{ animation:lp-hl-in .45s ease both; }
+  .lp-scene.active[data-scene="2"] .lp-xrow:nth-child(1) .lp-hl::before{ animation-delay:.2s; }
+  .lp-scene.active[data-scene="2"] .lp-xrow:nth-child(2) .lp-hl::before{ animation-delay:.55s; }
+  .lp-scene.active[data-scene="2"] .lp-xrow:nth-child(3) .lp-hl::before{ animation-delay:.9s; }
+  .lp-scene.active[data-scene="2"] .lp-xrow:nth-child(4) .lp-hl::before{ animation-delay:1.25s; }
+  @keyframes lp-hl-in{ to{ transform:scaleX(1); } }
+  .lp-scene.active[data-scene="2"] .lp-scene-pill{ animation:lp-pop .45s 1.45s ease both; }
+
+  .lp-vrow{
+    display:grid; grid-template-columns:1.2fr 1fr .9fr; align-items:center;
+    font-size:13px; padding:9px 0; border-bottom:1px solid #EEF0F6; color:var(--lp-text);
+  }
+  .lp-vrow:last-child{ border-bottom:none; }
+  .lp-vrow .lp-chip{ justify-self:start; font-size:11px; opacity:0; }
+  .lp-scene.active[data-scene="3"] .lp-vrow .lp-chip{ animation:lp-pop .4s ease both; }
+  .lp-scene.active[data-scene="3"] .lp-vrow:nth-child(1) .lp-chip{ animation-delay:.2s; }
+  .lp-scene.active[data-scene="3"] .lp-vrow:nth-child(2) .lp-chip{ animation-delay:.6s; }
+  .lp-scene.active[data-scene="3"] .lp-vrow:nth-child(3) .lp-chip{ animation-delay:1s; }
+  .lp-scene.active[data-scene="3"] .lp-vrow:nth-child(4) .lp-chip{ animation-delay:1.4s; }
+
+  .lp-scene[data-scene="4"]{ justify-content:flex-end; }
+  .lp-db{ width:116px; height:116px; margin-bottom:6px; }
+  .lp-db-label{ font-size:12px; font-weight:500; color:var(--lp-muted); text-align:center; }
+  .lp-fly{
+    position:absolute; top:6%; left:50%; opacity:0; white-space:nowrap;
+    background:#fff; border:1px solid var(--lp-tint-line); color:var(--lp-accent);
+    font-size:11.5px; font-weight:600; padding:6px 12px; border-radius:9px;
+    box-shadow:0 10px 20px -12px rgba(79,70,229,.5);
+  }
+  .lp-scene.active[data-scene="4"] .lp-fly{ animation:lp-fly 2.4s ease-in infinite; }
+  .lp-fly1{ margin-left:-52px; } .lp-fly2{ margin-left:0; } .lp-fly3{ margin-left:52px; }
+  .lp-scene.active[data-scene="4"] .lp-fly2{ animation-delay:.8s; }
+  .lp-scene.active[data-scene="4"] .lp-fly3{ animation-delay:1.6s; }
+  @keyframes lp-fly{
+    0%{ opacity:0; transform:translate(-50%,0) scale(1); }
+    15%{ opacity:1; }
+    70%{ opacity:1; transform:translate(-50%,140px) scale(.55); }
+    85%,100%{ opacity:0; transform:translate(-50%,165px) scale(.3); }
+  }
+
+  .lp-svg{ width:100%; height:auto; display:block; }
+  .lp-s-line{ stroke-dasharray:1; stroke-dashoffset:1; }
+  .lp-scene.active[data-scene="5"] .lp-s-line{ animation:lp-draw 1.5s .3s ease both; }
+  @keyframes lp-draw{ from{ stroke-dashoffset:1; } to{ stroke-dashoffset:0; } }
+  .lp-s-dot{ opacity:0; }
+  .lp-scene.active[data-scene="5"] .lp-s-dot{ animation:lp-dotpop .35s ease both; transform-box:fill-box; transform-origin:center; }
+  .lp-scene.active[data-scene="5"] .d1{ animation-delay:.4s; }
+  .lp-scene.active[data-scene="5"] .d2{ animation-delay:.7s; }
+  .lp-scene.active[data-scene="5"] .d3{ animation-delay:1s; }
+  .lp-scene.active[data-scene="5"] .d4{ animation-delay:1.3s; }
+  .lp-scene.active[data-scene="5"] .d5{ animation-delay:1.6s; }
+  @keyframes lp-dotpop{ from{ opacity:0; transform:scale(0); } to{ opacity:1; transform:scale(1); } }
+
+  /* ===== Features ===== */
+  .lp-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:18px; }
+  .lp-feat{
+    background:var(--lp-card); border:1px solid var(--lp-line); border-radius:16px; padding:28px;
+    transition:border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+  }
+  .lp-feat:hover{
+    border-color:var(--lp-tint-line); transform:translateY(-3px);
+    box-shadow:0 22px 40px -26px rgba(79,70,229,.45);
+  }
+  .lp-icon{
+    width:44px; height:44px; border-radius:11px; margin-bottom:18px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--lp-tint); color:var(--lp-accent);
+  }
+  .lp-icon svg{ width:21px; height:21px; }
+  .lp-feat h3{ font-size:17px; font-weight:600; margin:0 0 8px; }
+  .lp-feat p{ font-size:14px; line-height:1.65; color:var(--lp-muted); margin:0; }
+
+  /* ===== Trend preview ===== */
+  .lp-trend{ display:grid; grid-template-columns:1fr 1.2fr; gap:48px; align-items:center; }
+  .lp-trend-copy p{ color:var(--lp-text); font-size:15.5px; line-height:1.75; margin:0 0 12px; }
+  .lp-trend-card{
+    background:var(--lp-card); border:1px solid var(--lp-line); border-radius:18px; padding:22px 24px;
+    box-shadow:0 30px 60px -38px rgba(21,26,45,.35);
+  }
+  .lp-trend-title{ font-size:13px; font-weight:600; color:var(--lp-ink); margin-bottom:8px; }
+  .lp-trend-line{ stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset 1.8s cubic-bezier(.16,1,.3,1) .3s; }
+  .lp-trend.in-view .lp-trend-line{ stroke-dashoffset:0; }
+
+  /* ===== Quiz ===== */
+  .lp-quiz{
+    display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap;
+    border:1px solid var(--lp-tint-line); background:var(--lp-tint);
+    border-radius:18px; padding:30px 34px;
+  }
+  .lp-quiz h3{ margin:0 0 4px; font-size:20px; font-weight:600; }
+  .lp-quiz p{ margin:0; color:var(--lp-text); font-size:14.5px; }
+
+  /* ===== FAQ ===== */
+  .lp-faq{ max-width:780px; margin:0 auto; }
+  .lp-faq-item{ border-bottom:1px solid var(--lp-line); }
+  .lp-faq-item summary{
+    cursor:pointer; list-style:none; padding:22px 0; font-size:16px; font-weight:500; color:var(--lp-ink);
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .lp-faq-item summary::-webkit-details-marker{ display:none; }
+  .lp-faq-item summary::after{ content:'+'; font-size:22px; color:var(--lp-accent); transition:transform .25s ease; line-height:1; }
+  .lp-faq-item[open] summary::after{ transform:rotate(45deg); }
+  .lp-faq-item p{ margin:0 0 22px; font-size:14.5px; line-height:1.75; color:var(--lp-muted); max-width:660px; }
+
+  /* ===== Final CTA ===== */
+  .lp-final{
+    text-align:center; padding:64px 24px; border-radius:22px;
+    border:1px solid var(--lp-tint-line);
+    background:radial-gradient(600px 260px at 50% 0%, rgba(79,70,229,.10), transparent 70%), #fff;
+    margin-bottom:48px;
+  }
+  .lp-final p{ color:var(--lp-text); font-size:16px; margin:0; }
+
+  /* ===== Scroll reveal (kept subtle) ===== */
+  .lp-js .lp-reveal, .lp-js .lp-reveal-item{ opacity:0; transform:translateY(12px); transition:opacity .6s ease, transform .6s ease; }
+  .lp-js .lp-reveal.in-view, .lp-js .lp-reveal-group.in-view .lp-reveal-item{ opacity:1; transform:none; }
+  .lp-js .lp-reveal-group.in-view .lp-reveal-item:nth-child(2){ transition-delay:.08s; }
+  .lp-js .lp-reveal-group.in-view .lp-reveal-item:nth-child(3){ transition-delay:.16s; }
+  .lp-js .lp-reveal-group.in-view .lp-reveal-item:nth-child(4){ transition-delay:.24s; }
+  .lp-js .lp-reveal-group.in-view .lp-reveal-item:nth-child(5){ transition-delay:.32s; }
+  .lp-js .lp-reveal-group.in-view .lp-reveal-item:nth-child(6){ transition-delay:.4s; }
+
+  /* ===== Responsive ===== */
+  @media (max-width:1200px){
+    .lp-card-lungs, .lp-card-kidneys{ right:0; }
+    .lp-card-brain, .lp-card-heart{ left:0; }
+  }
+  @media (max-width:991px){
+    .lp-art{ display:none; }
+    .lp-hero{ grid-template-columns:1fr; min-height:0; padding-top:40px; }
+    .lp-trend{ grid-template-columns:1fr; }
+    .lp-trend-copy .lp-h2{ text-align:center !important; }
+    .lp-section{ padding-top:80px; }
+  }
+  @media (max-width:900px){
+    .lp-story{ grid-template-columns:1fr; gap:10px; }
+    .lp-stage-wrap{ order:-1; top:64px; z-index:5; }
+    .lp-stage-body{ height:300px; }
+    .lp-scene{ inset:12px; }
+    .lp-step{ min-height:46vh; }
+    .lp-step h3{ font-size:21px; }
+    .lp-fact{ border-right:none; border-bottom:1px solid var(--lp-line); }
+  }
+
+  /* ===== Watch Demo modal ===== */
+  .mt-watch-modal{
+    position:fixed; inset:0; background:rgba(17,24,39,.55);
+    backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px; z-index:999; opacity:0; pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .mt-watch-modal.open{ opacity:1; pointer-events:auto; }
+  .mt-watch-modal-inner{
+    background:#fff; border-radius:20px; padding:34px;
+    max-width:900px; width:100%; max-height:90vh; overflow:auto;
+    position:relative;
+    box-shadow:0 40px 80px -20px rgba(17,24,39,.4);
+    transform:scale(.97); transition:transform .3s ease;
+  }
+  .mt-watch-modal.open .mt-watch-modal-inner{ transform:scale(1); }
+  .mt-watch-modal-close{
+    position:absolute; top:18px; right:18px;
+    width:36px; height:36px; border-radius:50%;
+    border:none; background:#F1F3F9; color:#3A4157;
+    font-size:20px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .2s ease;
+  }
+  .mt-watch-modal-close:hover{ background:#E4E7F1; }
+
+  /* ===== Reduced motion ===== */
+  @media (prefers-reduced-motion: reduce){
+    .lp-ecg-glow, .lp-skel, .lp-fly{ animation:none !important; }
+    .lp-ecg-glow{ stroke-dasharray:none; }
+    .lp-trend-line, .lp-s-line{ transition:none; stroke-dashoffset:0; }
+    .lp-btn, .lp-feat, .lp-card, .lp-scene{ transition:none; }
+    .lp-js .lp-reveal, .lp-js .lp-reveal-item{ opacity:1; transform:none; transition:none; }
+  }
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ===== Watch demo modal =====
+(function () {
+  const demoRows = [
+    { name: "Hemoglobin", value: "14.2 g/dL", status: "normal" },
+    { name: "Glucose (Fasting)", value: "128 mg/dL", status: "abnormal" },
+    { name: "WBC Count", value: "7.8 x10³/µL", status: "normal" },
+    { name: "Cholesterol", value: "215 mg/dL", status: "needs_review" },
+    { name: "Vitamin D", value: "18 ng/mL", status: "abnormal" },
+  ];
+  const statusLabel = { normal: "Normal", abnormal: "Abnormal", needs_review: "Needs Review" };
+  const totalMs = 900 + demoRows.length * 550 + 400;
+
+  const modal = document.getElementById("mtWatchDemoModal");
+  const closeBtn = document.getElementById("mtWatchDemoClose");
+  const wrap = modal && modal.querySelector(".mt-demo-wrap");
+  if (!wrap) return;
+
+  const doc = wrap.querySelector(".mt-demo-doc");
+  const body = wrap.querySelector(".mt-demo-table-body");
+  let timers = [];
+  let loop = null;
+
+  function stop() { timers.forEach(clearTimeout); timers = []; }
+  function play(onDone) {
+    stop();
+    body.innerHTML = "";
+    doc.classList.remove("scanning");
+    void doc.offsetWidth;
+    doc.classList.add("scanning");
+    demoRows.forEach((row, i) => {
+      timers.push(setTimeout(() => {
+        const el = document.createElement("div");
+        el.className = "mt-demo-table-row";
+        el.innerHTML =
+          `<span>${row.name}</span>` +
+          `<span>${row.value}</span>` +
+          `<span class="mt-badge ${row.status}">${statusLabel[row.status]}</span>`;
+        body.appendChild(el);
+        requestAnimationFrame(() => el.classList.add("mt-row-in"));
+      }, 900 + i * 550));
+    });
+    timers.push(setTimeout(() => { if (onDone) onDone(); }, totalMs));
+  }
+  function playLoop() {
+    clearTimeout(loop);
+    play(() => { loop = setTimeout(playLoop, 2200); });
+  }
+  // Used by the navbar "Watch Demo" button in base.html
+  window.mtStartDemo = playLoop;
+
+  function openModal() {
+    modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+    playLoop();
+  }
+  function closeModal() {
+    modal.classList.remove("open");
+    document.body.style.overflow = "";
+    clearTimeout(loop);
+    stop();
+  }
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+  });
+
+  const heroBtn = document.getElementById("mtHeroDemoBtn");
+  if (heroBtn) heroBtn.addEventListener("click", openModal);
+  if (window.location.hash === "#watch-demo") openModal();
+})();
+</script>
+
+<script>
+// ===== Organ cards: hover panel + gentle auto-cycle =====
+(function () {
+  const art = document.querySelector(".lp-art");
+  if (!art) return;
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const data = {
+    heart:   { title: "Heart",            tests: [["Cholesterol", "Review", "review"], ["LDL", "Normal", "ok"], ["HDL", "Normal", "ok"], ["Triglycerides", "Normal", "ok"]] },
+    brain:   { title: "Vitamins & Sugar", tests: [["Vitamin D", "Low", "warn"], ["Vitamin B12", "Normal", "ok"], ["Glucose (F)", "High", "warn"]] },
+    lungs:   { title: "Blood",            tests: [["Hemoglobin", "Normal", "ok"], ["WBC Count", "Normal", "ok"], ["Platelets", "Normal", "ok"]] },
+    kidneys: { title: "Kidneys",          tests: [["Creatinine", "Normal", "ok"], ["Urea", "Normal", "ok"], ["eGFR", "Normal", "ok"]] },
+  };
+  const order = ["heart", "brain", "lungs", "kidneys"];
+
+  const cards = art.querySelectorAll(".lp-card");
+  const panel = document.getElementById("lpPanel");
+  const title = document.getElementById("lpPanelTitle");
+  const list = document.getElementById("lpPanelList");
+
+  let current = null, idx = 0, hold = false;
+
+  function show(key) {
+    if (key === current) return;
+    current = key;
+    cards.forEach(c => c.classList.toggle("is-active", c.dataset.organ === key));
+    const d = data[key];
+    title.textContent = d.title;
+    list.innerHTML = d.tests.map(t =>
+      `<div class="lp-prow"><span>${t[0]}</span><span class="lp-chip ${t[2]}">${t[1]}</span></div>`
+    ).join("");
+    panel.classList.remove("swap");
+    void panel.offsetWidth;
+    panel.classList.add("swap");
+  }
+
+  cards.forEach(c => {
+    const k = c.dataset.organ;
+    c.addEventListener("mouseenter", () => { hold = true; show(k); });
+    c.addEventListener("focus", () => { hold = true; show(k); });
+    c.addEventListener("click", () => { show(k); idx = order.indexOf(k); });
+    c.addEventListener("mouseleave", () => { hold = false; idx = order.indexOf(k); });
+    c.addEventListener("blur", () => { hold = false; idx = order.indexOf(k); });
+  });
+
+  show("heart");
+  if (!reduce) {
+    setInterval(() => {
+      if (hold || document.hidden) return;
+      idx = (idx + 1) % order.length;
+      show(order[idx]);
+    }, 4000);
+  }
+})();
+</script>
+
+<script>
+// ===== How it works: scroll story =====
+(function () {
+  const story = document.getElementById("lpStory");
+  if (!story) return;
+  const steps = story.querySelectorAll(".lp-step");
+  const scenes = story.querySelectorAll(".lp-scene");
+  const dots = story.querySelectorAll(".lp-dots i");
+  const label = document.getElementById("lpStageLabel");
+  const names = ["Upload", "Extract", "Validate", "Store", "Visualize"];
+
+  function setStep(n) {
+    steps.forEach(s => s.classList.toggle("active", Number(s.dataset.step) === n));
+    scenes.forEach(s => s.classList.toggle("active", Number(s.dataset.scene) === n));
+    dots.forEach((d, i) => d.classList.toggle("on", i === n - 1));
+    label.textContent = `Step ${n} · ${names[n - 1]}`;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) setStep(Number(e.target.dataset.step));
+    });
+  }, { rootMargin: "-42% 0px -42% 0px", threshold: 0 });
+
+  steps.forEach(s => io.observe(s));
+  setStep(1);
+})();
+</script>
+
+<script>
+// ===== Scroll reveal =====
+(function () {
+  document.documentElement.classList.add("lp-js");
+  const els = document.querySelectorAll(".lp-reveal, .lp-reveal-group");
+  if (!els.length) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("in-view");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  els.forEach(el => observer.observe(el));
+})();
+</script>
+{% endblock %}

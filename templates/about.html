@@ -1,0 +1,823 @@
+{% extends "base.html" %}
+{% block title %}About MedTrack{% endblock %}
+
+{% block content %}
+
+<section class="mt-about">
+
+  <!-- =========================
+       HERO
+  ========================== -->
+<div class="mt-about-hero">
+
+  <span class="mt-hero-eyebrow">About MedTrack</span>
+
+  <h1>
+    From Medical Reports to Meaningful Health Insights
+  </h1>
+
+  <p class="mt-lede">
+    MedTrack is a health analytics web application that extracts information
+    from laboratory report PDFs, processes test values, analyzes their trends,
+    and presents the results in a clear and understandable format.
+  </p>
+
+</div>
+
+
+
+    <!-- =========================
+         STEP 01
+    ========================== -->
+
+    <div class="mt-step">
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">01</span>
+
+        <h3>Upload PDF</h3>
+
+        <p>
+          Start by uploading your medical laboratory report in PDF format.
+          MedTrack accepts your report and prepares it for automated processing.
+        </p>
+
+        <span class="mt-step-tech">
+          📄 PDF Input
+        </span>
+
+      </div>
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/01_upload_pdf.png') }}"
+          alt="Uploading a medical lab report PDF"
+        >
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 02
+    ========================== -->
+
+    <div class="mt-step mt-step-reverse">
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/02_ocr_extraction.png') }}"
+          alt="OCR extracting text from a medical report"
+        >
+
+      </div>
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">02</span>
+
+        <h3>OCR Text Extraction</h3>
+
+        <p>
+          The uploaded report is scanned and its readable content is extracted
+          automatically. Important text, test names and numerical values are
+          identified from the document.
+        </p>
+
+        <span class="mt-step-tech">
+          🔍 OCR Text Extraction
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 03
+    ========================== -->
+
+    <div class="mt-step">
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">03</span>
+
+        <h3>NLP & Feature Extraction</h3>
+
+        <p>
+          MedTrack processes the extracted text to identify medical terms,
+          test names, measurements and relevant health information from
+          the report.
+        </p>
+
+        <span class="mt-step-tech">
+          🧠 NLP · Feature Extraction
+        </span>
+
+      </div>
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/03_nlp_feature_extraction.png') }}"
+          alt="NLP identifying medical features from a lab report"
+        >
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 04
+    ========================== -->
+
+    <div class="mt-step mt-step-reverse">
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/04_pdf_processing.png') }}"
+          alt="Processing and cleaning medical PDF information"
+        >
+
+      </div>
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">04</span>
+
+        <h3>PDF Processing</h3>
+
+        <p>
+          The extracted document content is processed and cleaned so that
+          useful information can be separated from unnecessary formatting
+          and document noise.
+        </p>
+
+        <span class="mt-step-tech">
+          ⚙️ PDF Processing
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 05
+    ========================== -->
+
+    <div class="mt-step">
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">05</span>
+
+        <h3>Structured Health Data</h3>
+
+        <p>
+          Extracted information is converted into organized health data.
+          Test names, results and units can then be compared and analyzed
+          consistently across reports.
+        </p>
+
+        <span class="mt-step-tech">
+          📋 Structured Data
+        </span>
+
+      </div>
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/05_structured_health_data.png') }}"
+          alt="Structured health data extracted from a medical report"
+        >
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 06
+    ========================== -->
+
+    <div class="mt-step mt-step-reverse">
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/06_health_trend_analysis.png') }}"
+          alt="Health trend analysis chart"
+        >
+
+      </div>
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">06</span>
+
+        <h3>Health Trend Analysis</h3>
+
+        <p>
+          MedTrack organizes test results over time and visualizes their
+          movement through charts, making it easier to notice changes
+          and understand your health history.
+        </p>
+
+        <span class="mt-step-tech">
+          📈 Trend Analysis · Plotly
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- =========================
+         STEP 07
+    ========================== -->
+
+    <div class="mt-step">
+
+      <div class="mt-step-content">
+
+        <span class="mt-step-number">07</span>
+
+        <h3>Insights & Final Report</h3>
+
+        <p>
+          Finally, MedTrack presents the processed information through
+          easy-to-understand reports, health trends and highlighted values,
+          helping users follow their results more easily.
+        </p>
+
+        <span class="mt-step-tech">
+          💡 Insights · Reports
+        </span>
+
+      </div>
+
+      <div class="mt-step-image">
+
+        <img
+          src="{{ url_for('static', filename='imgs/about/07_insights_final_report.png') }}"
+          alt="Final MedTrack health insights report"
+        >
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+<style>
+
+/* =====================================================
+   MAIN ABOUT PAGE
+===================================================== */
+
+.mt-about{
+  max-width:980px;
+  margin:0 auto;
+  padding:40px 0 70px;
+}
+
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.mt-about-hero{
+  text-align:center;
+  max-width:760px;
+  margin:0 auto 50px;
+}
+
+.mt-about-hero h1{
+  font-size:38px;
+  line-height:1.2;
+  letter-spacing:-0.01em;
+  margin:14px 0 18px;
+  color:#171325;
+}
+
+.mt-about-hero .mt-lede{
+  font-size:16px;
+  line-height:1.7;
+  color:#6B6478;
+}
+
+
+/* =====================================================
+   PROBLEM
+===================================================== */
+
+.mt-about-problem{
+  max-width:760px;
+  margin:0 auto 70px;
+}
+
+.mt-about-problem p{
+  font-size:15.5px;
+  line-height:1.75;
+  color:#4A4456;
+}
+
+
+/* =====================================================
+   WORKFLOW
+===================================================== */
+
+.mt-workflow{
+  margin:0 auto 80px;
+}
+
+.mt-workflow-heading{
+  text-align:center;
+  max-width:720px;
+  margin:0 auto 50px;
+}
+
+.mt-workflow-heading h2{
+  font-size:32px;
+  line-height:1.25;
+  margin:14px 0 12px;
+  color:#171325;
+}
+
+.mt-workflow-heading p{
+  font-size:15px;
+  line-height:1.7;
+  color:#6B6478;
+}
+
+
+/* =====================================================
+   STEP CARD
+===================================================== */
+
+.mt-step{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+
+  align-items:center;
+
+  gap:55px;
+
+  min-height:330px;
+
+  padding:35px 25px;
+
+  margin-bottom:30px;
+
+  border:1px solid #EDE9FE;
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(251,250,255,.96),
+      rgba(246,243,255,.9)
+    );
+
+  box-shadow:
+    0 14px 35px -28px
+    rgba(76,47,184,.35);
+
+  position:relative;
+}
+
+
+/* alternating card */
+
+.mt-step:nth-child(even){
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(248,245,255,.95),
+      rgba(252,250,255,.98)
+    );
+
+}
+
+
+/* =====================================================
+   STEP CONTENT
+===================================================== */
+
+.mt-step-content{
+  padding:15px;
+}
+
+.mt-step-number{
+
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  width:42px;
+  height:42px;
+
+  border-radius:13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7048F5,
+      #3F6DF6
+    );
+
+  color:white;
+
+  font-size:14px;
+
+  font-weight:800;
+
+  box-shadow:
+    0 8px 18px -8px
+    rgba(88,65,220,.55);
+
+  margin-bottom:18px;
+}
+
+
+.mt-step-content h3{
+
+  font-size:25px;
+
+  line-height:1.25;
+
+  margin:0 0 12px;
+
+  color:#171325;
+
+}
+
+
+.mt-step-content p{
+
+  font-size:15px;
+
+  line-height:1.75;
+
+  color:#6B6478;
+
+  margin:0 0 18px;
+
+  max-width:430px;
+
+}
+
+
+/* =====================================================
+   TECHNOLOGY TAG
+===================================================== */
+
+.mt-step-tech{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  padding:8px 13px;
+
+  border-radius:999px;
+
+  background:#EEE9FF;
+
+  border:1px solid #DED4FF;
+
+  color:#5C3CCB;
+
+  font-size:12px;
+
+  font-weight:700;
+
+}
+
+
+/* =====================================================
+   STEP IMAGE
+===================================================== */
+
+.mt-step-image{
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  min-height:250px;
+
+}
+
+.mt-step-image img{
+
+  width:100%;
+
+  max-width:400px;
+
+  max-height:280px;
+
+  object-fit:contain;
+
+  display:block;
+
+  border-radius:20px;
+
+  filter:
+    drop-shadow(
+      0 18px 28px
+      rgba(83,62,180,.14)
+    );
+
+  transition:
+    transform .25s ease,
+    filter .25s ease;
+
+}
+
+
+.mt-step-image img:hover{
+
+  transform:
+    translateY(-5px)
+    scale(1.015);
+
+  filter:
+    drop-shadow(
+      0 24px 35px
+      rgba(83,62,180,.2)
+    );
+
+}
+
+
+/* =====================================================
+   WHY MEDTRACK
+===================================================== */
+
+.mt-lp-heading{
+
+  font-size:26px;
+
+  color:#171325;
+
+  margin-bottom:20px;
+
+}
+
+
+.mt-why-grid{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(220px, 1fr)
+    );
+
+  gap:20px;
+
+  margin-bottom:56px;
+
+}
+
+
+.mt-why-card{
+
+  background:#FBFAFF;
+
+  border:1px solid #EDE9FE;
+
+  border-radius:16px;
+
+  padding:24px;
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+
+}
+
+
+.mt-why-card:hover{
+
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 16px 30px -18px
+    rgba(76,47,184,.3);
+
+}
+
+
+.mt-why-icon{
+
+  width:42px;
+  height:42px;
+
+  border-radius:12px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  margin-bottom:14px;
+
+}
+
+
+.mt-why-card h3{
+
+  font-size:15.5px;
+
+  margin:0 0 8px;
+
+  color:#171325;
+
+}
+
+
+.mt-why-card p{
+
+  font-size:13.5px;
+
+  line-height:1.6;
+
+  color:#6B6478;
+
+  margin:0;
+
+}
+
+
+/* =====================================================
+   FYP BADGE
+===================================================== */
+
+.mt-fyp-badge{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #EDE9FE,
+      #FCE4EC
+    );
+
+  border:1px solid #E0D6FA;
+
+  border-radius:18px;
+
+  padding:20px 26px;
+
+  max-width:560px;
+
+  margin:0 auto;
+
+}
+
+
+.mt-fyp-emoji{
+
+  font-size:30px;
+
+  line-height:1;
+
+}
+
+
+.mt-fyp-title{
+
+  font-weight:700;
+
+  font-size:14.5px;
+
+  color:#171325;
+
+}
+
+
+.mt-fyp-sub{
+
+  font-size:12.5px;
+
+  color:#6B6478;
+
+  margin-top:2px;
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:760px){
+
+  .mt-about{
+
+    padding:
+      30px 18px 50px;
+
+  }
+
+
+  .mt-about-hero h1{
+
+    font-size:30px;
+
+  }
+
+
+  .mt-workflow-heading h2{
+
+    font-size:27px;
+
+  }
+
+
+  .mt-step,
+  .mt-step-reverse{
+
+    grid-template-columns:1fr;
+
+    gap:20px;
+
+    padding:25px 20px;
+
+    min-height:auto;
+
+  }
+
+
+  /* Text first on mobile */
+
+  .mt-step-reverse .mt-step-content{
+
+    order:1;
+
+  }
+
+
+  .mt-step-reverse .mt-step-image{
+
+    order:2;
+
+  }
+
+
+  .mt-step-image{
+
+    min-height:200px;
+
+  }
+
+
+  .mt-step-image img{
+
+    max-width:330px;
+
+  }
+
+
+  .mt-step-content h3{
+
+    font-size:22px;
+
+  }
+
+
+  .mt-fyp-badge{
+
+    padding:18px;
+
+  }
+
+}
+
+</style>
+
+{% endblock %}

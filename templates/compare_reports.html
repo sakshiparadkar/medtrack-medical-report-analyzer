@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Reports — MedTrack{% endblock %}
+
+{% block content %}
+
+<div class="mt-page-head">
+  <div>
+    <h1>Compare Two Reports</h1>
+    <p>See exactly what changed between any two of your reports, test by test.</p>
+  </div>
+</div>
+
+
+{% if all_user_reports|length < 2 %}
+
+<div class="mt-empty">
+  <h3>Need at least 2 reports to compare</h3>
+  <p>Upload another report to unlock side-by-side comparison.</p>
+
+  <a href="{{ url_for('upload') }}"
+     class="mt-btn mt-btn-primary"
+     style="margin-top:14px;">
+    Upload a Report
+  </a>
+</div>
+
+
+{% else %}
+
+<!-- REPORT SELECTION -->
+
+<form method="GET"
+      action="{{ url_for('compare_reports') }}"
+      class="mt-card"
+      style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
+
+  <!-- FIRST REPORT -->
+
+  <div style="flex:1; min-width:220px;">
+
+    <label class="mt-form-label" for="report1">
+      First Report
+    </label>
+
+    <select class="mt-input"
+            name="report1"
+            id="report1"
+            style="margin-bottom:0;">
+
+      <option value="">Select first report</option>
+
+      {% for r in all_user_reports %}
+
+      <option value="{{ r.id }}"
+        {% if request.args.get('report1') == (r.id|string) %}
+          selected
+        {% endif %}>
+
+        {{ r.report_date.strftime('%d %b %Y') }}
+        — {{ r.original_name }}
+
+      </option>
+
+      {% endfor %}
+
+    </select>
+
+  </div>
+
+
+  <!-- SECOND REPORT -->
+
+  <div style="flex:1; min-width:220px;">
+
+    <label class="mt-form-label" for="report2">
+      Second Report
+    </label>
+
+    <select class="mt-input"
+            name="report2"
+            id="report2"
+            style="margin-bottom:0;">
+
+      <option value="">Select second report</option>
+
+      {% for r in all_user_reports %}
+
+      <option value="{{ r.id }}"
+        {% if request.args.get('report2') == (r.id|string) %}
+          selected
+        {% endif %}>
+
+        {{ r.report_date.strftime('%d %b %Y') }}
+        — {{ r.original_name }}
+
+      </option>
+
+      {% endfor %}
+
+    </select>
+
+  </div>
+
+
+  <!-- COMPARE BUTTON -->
+
+  <button type="submit"
+          class="mt-btn mt-btn-primary">
+    Compare
+  </button>
+
+  {% if request.args.get('report1') or request.args.get('report2') %}
+  <a href="{{ url_for('compare_reports') }}" class="mt-btn mt-btn-ghost">
+    ✕ Clear selection
+  </a>
+  {% endif %}
+
+</form>
+
+
+<!-- COMPARISON RESULT -->
+
+{% if comparison_rows %}
+
+<div style="display:flex; justify-content:flex-end; margin-top:14px;">
+  <a href="{{ url_for('compare_reports') }}" class="mt-btn mt-btn-ghost">
+    ✕ Clear comparison
+  </a>
+</div>
+
+<div class="mt-card" style="padding:0; margin-top:10px;">
+
+  <div style="padding:20px 20px 10px 20px;">
+
+    <h2 style="margin:0;">
+      Report Comparison
+    </h2>
+
+    <p style="margin-top:6px; color:var(--ink-soft);">
+
+      {{ report_a.report_date.strftime('%d %b %Y') }}
+
+      &nbsp; → &nbsp;
+
+      {{ report_b.report_date.strftime('%d %b %Y') }}
+
+    </p>
+
+  </div>
+
+
+  <div style="overflow-x:auto;">
+
+    <table class="mt-table">
+
+      <thead>
+
+        <tr>
+
+          <th>Test</th>
+
+          <th>
+            {{ report_a.report_date.strftime('%d %b %Y') }}
+          </th>
+
+          <th>
+            {{ report_b.report_date.strftime('%d %b %Y') }}
+          </th>
+
+          <th>Change</th>
+
+          <th>Status</th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        {% for row in comparison_rows %}
+
+        <tr>
+
+          <!-- TEST NAME -->
+
+          <td style="font-weight:600;">
+            {{ row.test_name }}
+          </td>
+
+
+          <!-- FIRST REPORT VALUE -->
+
+          <td>
+
+            {% if row.value_a is not none %}
+
+              {{ row.value_a }}
+
+            {% else %}
+
+              <span style="color:var(--ink-soft);">
+                —
+              </span>
+
+            {% endif %}
+
+          </td>
+
+
+          <!-- SECOND REPORT VALUE -->
+
+          <td>
+
+            {% if row.value_b is not none %}
+
+              {{ row.value_b }}
+
+            {% else %}
+
+              <span style="color:var(--ink-soft);">
+                —
+              </span>
+
+            {% endif %}
+
+          </td>
+
+
+          <!-- CHANGE (clearly labelled) -->
+
+          <td>
+
+            {% if row.pct_change is not none %}
+
+              {% if row.pct_change > 0 %}
+                <span class="mt-pct up">▲ Increased {{ '%+.1f'|format(row.pct_change) }}%</span>
+              {% elif row.pct_change < 0 %}
+                <span class="mt-pct down">▼ Decreased {{ '%+.1f'|format(row.pct_change) }}%</span>
+              {% else %}
+                <span class="mt-pct flat">— No change</span>
+              {% endif %}
+
+            {% else %}
+
+              <span style="color:var(--ink-soft); font-size:0.85rem;">
+                Only in one report
+              </span>
+
+            {% endif %}
+
+          </td>
+
+
+          <!-- STATUS -->
+
+          <td>
+
+            {% if row.flag_b %}
+
+              <span class="mt-badge {{ row.flag_b }}">
+                {{ row.flag_b.replace('_', ' ') }}
+              </span>
+
+            {% else %}
+
+              <span style="color:var(--ink-soft);">
+                —
+              </span>
+
+            {% endif %}
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+
+{% elif request.args.get('report1') and request.args.get('report2') %}
+
+<div class="mt-empty" style="margin-top:20px;">
+
+  <h3>Unable to compare these reports</h3>
+
+  <p>
+    Please select two different reports and try again.
+  </p>
+
+</div>
+
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

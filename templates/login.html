@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Log in — MedTrack{% endblock %}
+
+{% block content %}
+<div class="mt-auth-wrap">
+  <h1>Welcome back</h1>
+  <p class="mt-sub">Log in to see your health trends.</p>
+
+  <form method="POST" action="{{ url_for('login') }}">
+    <label class="mt-form-label" for="email">Email</label>
+    <input class="mt-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+
+    <label class="mt-form-label" for="password">Password</label>
+    <input class="mt-input" type="password" id="password" name="password" placeholder="Your password" required>
+
+    <button type="submit" class="mt-btn mt-btn-primary mt-btn-block mt-btn-lg">Log in</button>
+  </form>
+
+  <p class="mt-auth-foot">Don't have an account? <a href="{{ url_for('signup') }}">Sign up</a></p>
+</div>
+{% endblock %}
