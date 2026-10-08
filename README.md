@@ -396,7 +396,7 @@ Historical results are used to generate timelines, comparisons, trends, and heal
 
 ## 🏠 Home Page
 
-![MedTrack Home Page](screenshots/home.png)
+![MedTrack Home Page](imgs/home.png)
 
 The landing page introduces MedTrack and explains how the platform converts laboratory reports into useful health information.
 
@@ -404,7 +404,7 @@ The landing page introduces MedTrack and explains how the platform converts labo
 
 ## 📊 Dashboard
 
-![MedTrack Dashboard](screenshots/dashboard.png)
+![MedTrack Dashboard](imgs/dashboard.png)
 
 The dashboard provides a centralized overview of the user's reports and health-related information.
 
@@ -412,7 +412,7 @@ The dashboard provides a centralized overview of the user's reports and health-r
 
 ## 📤 Upload Report
 
-![Upload Report](screenshots/upload.png)
+![Upload Report](imgs/upload.png)
 
 Users can upload their laboratory report PDFs for automatic processing and analysis.
 
@@ -428,7 +428,7 @@ Extracted laboratory tests are presented in a structured and readable format.
 
 ## ⚠️ Abnormal Tests
 
-![Abnormal Tests](screenshots/abnormal-tests.png)
+![Abnormal Tests](imgs/abnormal-tests.png)
 
 Potentially abnormal results are highlighted by comparing test values with their corresponding reference ranges.
 
@@ -436,7 +436,7 @@ Potentially abnormal results are highlighted by comparing test values with their
 
 ## 📅 Health Timeline
 
-![Health Timeline](screenshots/timeline.png)
+![Health Timeline](imgs/timeline.png)
 
 The timeline organizes uploaded reports chronologically, allowing users to view their health data over time.
 
@@ -444,7 +444,7 @@ The timeline organizes uploaded reports chronologically, allowing users to view 
 
 ## 📈 Health Trends
 
-![Health Trends](screenshots/trends.png)
+![Health Trends](imgs/trends.png)
 
 Interactive charts help users visualize changes in laboratory values across multiple reports.
 
@@ -452,7 +452,7 @@ Interactive charts help users visualize changes in laboratory values across mult
 
 ## 💡 Health Insights
 
-![Health Insights](screenshots/health-insights.png)
+![Health Insights](imgs/health-insights.png)
 
 MedTrack presents simplified insights based on the available health data.
 
@@ -460,7 +460,7 @@ MedTrack presents simplified insights based on the available health data.
 
 ## 🔄 Report Comparison
 
-![Report Comparison](screenshots/compare.png)
+![Report Comparison](imgs/compare.png)
 
 Users can compare reports from different dates to identify changes in their laboratory results.
 
@@ -468,7 +468,7 @@ Users can compare reports from different dates to identify changes in their labo
 
 ## 📑 Generated PDF Report
 
-![PDF Report](screenshots/pdf-report.png)
+![PDF Report](imgs/pdf-report.png)
 
 Users can generate a structured PDF summary containing important report information and analysis.
 
