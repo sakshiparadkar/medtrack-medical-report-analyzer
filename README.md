@@ -526,14 +526,6 @@ The project combines **web development, database management, PDF processing, dat
 
 ---
 
-# 👥 Team
-
-**MedTrack — Final Year Project**
-
-Developed as an academic project with the goal of improving how users organize and understand their laboratory report data.
-
----
-
 # ⚕️ Medical Disclaimer
 
 MedTrack is an **educational and informational software application**.
