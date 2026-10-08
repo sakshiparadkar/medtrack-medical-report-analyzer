@@ -420,7 +420,7 @@ Users can upload their laboratory report PDFs for automatic processing and analy
 
 ## 🔍 Extracted Values
 
-![Extracted Values](screenshots/extracted-values.png)
+![Extracted Values](imgs/extracted-values.png)
 
 Extracted laboratory tests are presented in a structured and readable format.
 
